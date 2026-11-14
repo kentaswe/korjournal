@@ -1,513 +1,553 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="sv" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Körjournal</title>
+
+  <!-- PWA-metadata och relativa sökvägar för GitHub Pages -->
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <link rel="apple-touch-icon" href="./icon.svg">
-  <meta name="theme-color" id="meta-theme-color" content="#0f172a">
+  <meta id="meta-theme-color" name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- SheetJS för äkta .xlsx-export -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Dynamiska CSS-variabler för valbar accentfärg -->
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --border: #334155;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --input-bg: #0f172a;
       --accent: #3b82f6;
       --accent-hover: #2563eb;
-      --success: #10b981;
-      --danger: #ef4444;
-      --work-bg: rgba(59, 130, 246, 0.18);
-      --work-text: #60a5fa;
-      --priv-bg: rgba(245, 158, 11, 0.18);
-      --priv-text: #fbbf24;
+      --accent-soft: rgba(59, 130, 246, 0.15);
+      --accent-border: rgba(59, 130, 246, 0.35);
     }
 
-    [data-theme="light"] {
-      --bg: #f1f5f9;
-      --card: #ffffff;
-      --border: #cbd5e1;
-      --text: #0f172a;
-      --muted: #64748b;
-      --input-bg: #f8fafc;
-      --work-bg: rgba(59, 130, 246, 0.14);
-      --work-text: #2563eb;
-      --priv-bg: rgba(217, 119, 6, 0.14);
-      --priv-text: #d97706;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-      padding: 16px;
-      padding-bottom: 60px;
-      max-width: 720px;
-      margin: 0 auto;
-      transition: background-color 0.2s, color 0.2s;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    h1 { font-size: 1.4rem; font-weight: 700; }
-
-    .status-badge {
-      font-size: 0.72rem;
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--success);
-      padding: 3px 8px;
-      border-radius: 6px;
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      font-weight: 600;
-    }
-
-    .theme-controls {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .color-swatches {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--card);
-      padding: 5px 8px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-    }
-
-    .swatch {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      cursor: pointer;
-      transition: transform 0.15s;
-    }
-
-    .swatch:hover { transform: scale(1.15); }
-    .swatch.active {
-      border-color: var(--text);
-      transform: scale(1.15);
-    }
-
-    .theme-toggle {
-      background: var(--card);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-weight: 500;
-    }
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .stat-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 1.2rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .stat-label {
-      font-size: 0.75rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 2px;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 20px;
-    }
-
-    .card h2 {
-      font-size: 1.05rem;
-      margin-bottom: 14px;
-      color: var(--text);
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .full-width { grid-column: 1 / -1; }
-
-    label {
-      display: block;
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-
-    input, select {
-      width: 100%;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 0.95rem;
-    }
-
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s, background-color 0.15s;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #ffffff;
-      margin-top: 6px;
-    }
-
-    .btn-primary:hover {
-      background: var(--accent-hover);
-    }
-
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .btn-secondary {
-      background: var(--card);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 9px 12px;
-      font-size: 0.85rem;
-      width: auto;
-      flex: 1;
-    }
-
-    .btn-secondary:hover {
-      border-color: var(--accent);
-    }
-
-    .trip-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .trip-item {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-    }
-
-    .trip-meta {
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-bottom: 4px;
-    }
-
-    .trip-route {
-      font-weight: 600;
-      font-size: 0.95rem;
-      margin-bottom: 2px;
-    }
-
-    .trip-purpose {
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-
-    .trip-odo {
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-top: 6px;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .trip-right {
-      text-align: right;
-      flex-shrink: 0;
-    }
-
-    .trip-dist {
-      font-size: 1.1rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .badge {
-      display: inline-block;
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 2px 7px;
-      border-radius: 5px;
-      margin-bottom: 6px;
-    }
-
-    .badge-work {
-      background: var(--work-bg);
-      color: var(--work-text);
-    }
-
-    .badge-priv {
-      background: var(--priv-bg);
-      color: var(--priv-text);
-    }
-
-    .btn-delete {
-      background: transparent;
-      border: none;
-      color: var(--muted);
-      font-size: 0.8rem;
-      cursor: pointer;
-      margin-top: 8px;
-      padding: 4px;
-    }
-
-    .btn-delete:hover {
-      color: var(--danger);
-    }
-
-    .empty-state {
-      text-align: center;
-      color: var(--muted);
-      padding: 32px 16px;
-      font-size: 0.9rem;
-      background: var(--card);
-      border: 1px dashed var(--border);
-      border-radius: 10px;
-    }
+    .bg-accent { background-color: var(--accent); }
+    .hover\:bg-accent-hover:hover { background-color: var(--accent-hover); }
+    .text-accent { color: var(--accent); }
+    .bg-accent-soft { background-color: var(--accent-soft); }
+    .border-accent { border-color: var(--accent-border); }
+    .focus\:border-accent:focus { border-color: var(--accent); }
   </style>
 </head>
-<body>
+<body class="bg-slate-100 text-slate-900 dark:bg-[#0f172a] dark:text-slate-50 font-sans antialiased min-h-screen p-4 pb-20 transition-colors duration-200">
 
-  <header>
-    <div class="header-left">
-      <h1>Körjournal</h1>
-      <span class="status-badge">PWA</span>
-    </div>
-    <div class="theme-controls">
-      <div class="color-swatches" id="color-swatches" aria-label="Välj accentfärg"></div>
-      <button type="button" class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
-        <span id="theme-icon">☀️</span>
-        <span id="theme-label">Ljust</span>
+  <div class="max-w-2xl mx-auto">
+    <!-- Header med titel, färgväljare, tema-växlare och PWA-status -->
+    <header class="pb-4 mb-4 border-b border-slate-200 dark:border-[#334155]">
+      <div class="flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="bg-accent-soft border border-accent p-2.5 rounded-xl text-accent transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
+              <circle cx="7" cy="17" r="2"/>
+              <path d="M9 17h6"/>
+              <circle cx="17" cy="17" r="2"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold tracking-tight">Körjournal</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Lokal lagring &amp; Excel-export</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Färgväljare med 5 accentfärger -->
+          <div class="flex items-center gap-1.5 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-[#334155] px-2.5 py-2 rounded-xl shadow-sm" title="Välj accentfärg">
+            <button type="button" onclick="setAccent('blue')" data-color="blue" aria-label="Blå"
+              class="color-dot w-4 h-4 rounded-full bg-[#3b82f6] transition-transform hover:scale-110 cursor-pointer ring-offset-2 dark:ring-offset-[#1e293b]"></button>
+            <button type="button" onclick="setAccent('emerald')" data-color="emerald" aria-label="Grön"
+              class="color-dot w-4 h-4 rounded-full bg-[#10b981] transition-transform hover:scale-110 cursor-pointer ring-offset-2 dark:ring-offset-[#1e293b]"></button>
+            <button type="button" onclick="setAccent('orange')" data-color="orange" aria-label="Orange"
+              class="color-dot w-4 h-4 rounded-full bg-[#f97316] transition-transform hover:scale-110 cursor-pointer ring-offset-2 dark:ring-offset-[#1e293b]"></button>
+            <button type="button" onclick="setAccent('violet')" data-color="violet" aria-label="Lila"
+              class="color-dot w-4 h-4 rounded-full bg-[#8b5cf6] transition-transform hover:scale-110 cursor-pointer ring-offset-2 dark:ring-offset-[#1e293b]"></button>
+            <button type="button" onclick="setAccent('rose')" data-color="rose" aria-label="Röd"
+              class="color-dot w-4 h-4 rounded-full bg-[#ef4444] transition-transform hover:scale-110 cursor-pointer ring-offset-2 dark:ring-offset-[#1e293b]"></button>
+          </div>
+
+          <!-- Knapp för att växla mellan ljust och mörkt läge -->
+          <button type="button" onclick="toggleTheme()" id="theme-toggle" title="Växla ljust/mörkt läge" aria-label="Växla ljust eller mörkt läge"
+            class="bg-white dark:bg-[#1e293b] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-[#334155] text-slate-700 dark:text-slate-200 p-2 rounded-xl shadow-sm transition-colors cursor-pointer">
+            <!-- Sol-ikon (visas i mörkt läge) -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 hidden dark:block text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+            </svg>
+            <!-- Mån-ikon (visas i ljust läge) -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 block dark:hidden text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+            </svg>
+          </button>
+
+          <!-- Offline-status -->
+          <span id="offline-status" class="hidden sm:flex text-xs font-medium bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 px-2.5 py-2 rounded-xl border border-emerald-500/30 items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400"></span>
+            Offline-redo
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Fliknavigering (Körjournal / Exportera) -->
+    <nav class="grid grid-cols-2 gap-1.5 bg-white dark:bg-[#1e293b] p-1.5 rounded-xl border border-slate-200 dark:border-[#334155] mb-5 shadow-sm" role="tablist">
+      <button type="button" id="tab-btn-journal" onclick="switchTab('journal')" role="tab" aria-selected="true"
+        class="tab-btn bg-accent text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-colors cursor-pointer">
+        Körjournal
       </button>
-    </div>
-  </header>
+      <button type="button" id="tab-btn-export" onclick="switchTab('export')" role="tab" aria-selected="false"
+        class="tab-btn text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold py-2.5 px-4 rounded-lg text-sm transition-colors cursor-pointer">
+        Exportera
+      </button>
+    </nav>
 
-  <div class="summary-grid">
-    <div class="stat-card">
-      <div class="stat-value" id="stat-total">0 km</div>
-      <div class="stat-label">Totalt</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value" id="stat-work" style="color: var(--work-text);">0 km</div>
-      <div class="stat-label">Tjänst</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value" id="stat-priv" style="color: var(--priv-text);">0 km</div>
-      <div class="stat-label">Privat</div>
-    </div>
+    <!-- FLIK 1: KÖRJOURNAL -->
+    <main id="tab-journal" class="block">
+      <!-- Översiktskort (Totalt, Tjänst, Privat i km) -->
+      <section class="grid grid-cols-3 gap-2.5 sm:gap-3 mb-5">
+        <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-[#334155] rounded-xl p-3.5 sm:p-4 text-center shadow-sm transition-colors">
+          <div id="stat-total" class="text-base sm:text-xl font-bold text-slate-900 dark:text-slate-50 tabular-nums">0 km</div>
+          <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold mt-1">Totalt</div>
+        </div>
+
+        <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-[#334155] rounded-xl p-3.5 sm:p-4 text-center shadow-sm transition-colors">
+          <div id="stat-work" class="text-base sm:text-xl font-bold text-accent tabular-nums">0 km</div>
+          <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold mt-1">Tjänst</div>
+        </div>
+
+        <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-[#334155] rounded-xl p-3.5 sm:p-4 text-center shadow-sm transition-colors">
+          <div id="stat-priv" class="text-base sm:text-xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">0 km</div>
+          <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold mt-1">Privat</div>
+        </div>
+      </section>
+
+      <!-- Formulär för att registrera ny resa -->
+      <section id="form-section" class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-[#334155] rounded-xl p-4 sm:p-5 mb-6 shadow-sm transition-colors">
+        <div class="flex justify-between items-center mb-4">
+          <h2 id="form-title" class="text-base font-semibold text-slate-900 dark:text-slate-100">Registrera resa</h2>
+          <span id="live-distance" class="text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-[#0f172a] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-[#334155] tabular-nums">
+            Sträcka: 0 km
+          </span>
+        </div>
+
+        <form id="trip-form" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div>
+            <label for="date" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Datum</label>
+            <input type="date" id="date" required
+              class="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-300 dark:border-[#334155] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
+          </div>
+
+          <div>
+            <label for="type" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Typ av resa</label>
+            <select id="type" required
+              class="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-300 dark:border-[#334155] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
+              <option value="Tjänst">Tjänsteresa</option>
+              <option value="Privat">Privatresa</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="odo-start" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Mätarställning start (km)</label>
+            <input type="number" id="odo-start" inputmode="numeric" min="0" placeholder="t.ex. 45333" required
+              class="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-300 dark:border-[#334155] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm tabular-nums focus:outline-none focus:border-accent transition-colors">
+          </div>
+
+          <div>
+            <label for="odo-end" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Mätarställning slut (km)</label>
+            <input type="number" id="odo-end" inputmode="numeric" min="0" placeholder="t.ex. 45385" required
+              class="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-300 dark:border-[#334155] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm tabular-nums focus:outline-none focus:border-accent transition-colors">
+          </div>
+
+          <div>
+            <label for="start-addr" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Startadress / Ort</label>
+            <input type="text" id="start-addr" placeholder="Från" required
+              class="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-300 dark:border-[#334155] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
+          </div>
+
+          <div>
+            <label for="end-addr" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Slutadress / Ort</label>
+            <input type="text" id="end-addr" placeholder="Till" required
+              class="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-300 dark:border-[#334155] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="purpose" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Ändamål / Anteckning (krävs vid tjänsteresa)</label>
+            <input type="text" id="purpose" placeholder="t.ex. Kundbesök, service, materialinköp"
+              class="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-300 dark:border-[#334155] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
+          </div>
+
+          <div class="sm:col-span-2 pt-1 flex gap-2">
+            <button type="submit" id="submit-btn"
+              class="flex-1 bg-accent hover:bg-accent-hover text-white font-semibold py-3 px-4 rounded-xl text-sm transition-colors shadow-sm cursor-pointer">
+              Spara resa
+            </button>
+            <button type="button" id="cancel-edit-btn" onclick="cancelEdit()"
+              class="hidden bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 font-semibold py-3 px-4 rounded-xl text-sm transition-colors cursor-pointer">
+              Avbryt
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Meddelande- och bekräftelseruta ovanför registrerade resor -->
+      <div id="toast-box" class="hidden mb-4 p-3.5 rounded-xl border text-sm font-medium flex justify-between items-center transition-all">
+        <span id="toast-message"></span>
+        <div id="toast-actions" class="flex gap-2 ml-3 shrink-0"></div>
+      </div>
+
+      <!-- Lista över registrerade resor -->
+      <section id="trip-list-section">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Registrerade resor</h2>
+          <span id="trip-count" class="text-xs font-medium text-slate-500 dark:text-slate-400">0 st</span>
+        </div>
+        <div id="trip-list" class="flex flex-col gap-2.5"></div>
+      </section>
+    </main>
+
+    <!-- FLIK 2: EXPORTERA -->
+    <section id="tab-export" class="hidden">
+      <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-[#334155] rounded-xl p-5 sm:p-6 mb-5 shadow-sm transition-colors">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 p-2.5 rounded-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Exportera till Excel</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Välj period och ladda ner i .xlsx-format</p>
+          </div>
+        </div>
+
+        <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+          Välj en specifik månad eller hela journalen nedan för att exportera en Excel-fil (<strong>.xlsx</strong>) med färdiga kolumner och sammanställning centrerad under körsträckan.
+        </p>
+
+        <!-- Månadsväljare -->
+        <div class="mb-4">
+          <label for="export-month-select" class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Välj period att exportera</label>
+          <select id="export-month-select" onchange="updateExportSummary()"
+            class="w-full bg-slate-50 dark:bg-[#0f172a] border border-slate-300 dark:border-[#334155] text-slate-900 dark:text-slate-50 px-3.5 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:border-accent transition-colors cursor-pointer">
+            <option value="all">Alla månader</option>
+          </select>
+        </div>
+
+        <!-- Sammanställning inför export (uppdateras efter vald månad) -->
+        <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-[#334155] rounded-xl p-4 mb-5 flex flex-col gap-2.5 text-sm">
+          <div class="flex justify-between items-center">
+            <span class="text-slate-600 dark:text-slate-400">Antal resor i vald period:</span>
+            <strong id="exp-count" class="font-semibold text-slate-900 dark:text-slate-100 tabular-nums">0 st</strong>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-600 dark:text-slate-400">Tjänsteresor:</span>
+            <strong id="exp-work" class="font-semibold text-accent tabular-nums">0 km</strong>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-600 dark:text-slate-400">Privatresor:</span>
+            <strong id="exp-priv" class="font-semibold text-amber-600 dark:text-amber-400 tabular-nums">0 km</strong>
+          </div>
+          <div class="flex justify-between items-center pt-2.5 mt-0.5 border-t border-slate-200 dark:border-[#334155]">
+            <span class="font-semibold text-slate-800 dark:text-slate-200">Total körsträcka:</span>
+            <strong id="exp-total" class="font-bold text-slate-900 dark:text-slate-50 tabular-nums">0 km</strong>
+          </div>
+        </div>
+
+        <button type="button" onclick="exportExcel()"
+          class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3.5 px-4 rounded-xl text-sm transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Exportera Excel (.xlsx)</span>
+        </button>
+      </div>
+
+      <!-- Månadsöversikt -->
+      <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-[#334155] rounded-xl p-5 sm:p-6 shadow-sm transition-colors">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Månadsöversikt</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Summering av tjänste- och privatkörning per månad</p>
+          </div>
+        </div>
+        <div id="monthly-overview-list" class="flex flex-col gap-3"></div>
+      </div>
+    </section>
   </div>
-
-  <div class="card">
-    <h2>Registrera resa</h2>
-    <form id="trip-form" class="form-grid">
-      <div>
-        <label for="date">Datum</label>
-        <input type="date" id="date" required>
-      </div>
-      <div>
-        <label for="type">Typ av resa</label>
-        <select id="type" required>
-          <option value="Tjänst">Tjänsteresa</option>
-          <option value="Privat">Privatresa</option>
-        </select>
-      </div>
-      <div>
-        <label for="odo-start">Mätarställning start (km)</label>
-        <input type="number" id="odo-start" inputmode="numeric" placeholder="t.ex. 12450" required>
-      </div>
-      <div>
-        <label for="odo-end">Mätarställning slut (km)</label>
-        <input type="number" id="odo-end" inputmode="numeric" placeholder="t.ex. 12485" required>
-      </div>
-      <div>
-        <label for="start-addr">Startadress / Ort</label>
-        <input type="text" id="start-addr" placeholder="Från" required>
-      </div>
-      <div>
-        <label for="end-addr">Slutadress / Ort</label>
-        <input type="text" id="end-addr" placeholder="Till" required>
-      </div>
-      <div class="full-width">
-        <label for="purpose">Ändamål / Anteckning (krävs vid tjänsteresa)</label>
-        <input type="text" id="purpose" placeholder="t.ex. Kundbesök, service, materialinköp">
-      </div>
-      <div class="full-width">
-        <button type="submit" class="btn btn-primary">Spara resa</button>
-      </div>
-    </form>
-  </div>
-
-  <div class="toolbar">
-    <button type="button" class="btn btn-secondary" onclick="exportCSV()">Exportera CSV</button>
-    <button type="button" class="btn btn-secondary" onclick="exportJSON()">Backup (JSON)</button>
-    <button type="button" class="btn btn-secondary" onclick="document.getElementById('import-file').click()">Återställ</button>
-    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
-  </div>
-
-  <div id="trip-list" class="trip-list"></div>
 
   <script>
-    const STORAGE_KEY = 'korjournal_trips_v1';
-    const THEME_KEY = 'korjournal_theme';
-    const ACCENT_KEY = 'korjournal_accent';
+    // Nycklar för localStorage
+    const STORAGE_KEY = 'korjournal_trips_v3';
+    const THEME_KEY = 'korjournal_theme_v1';
+    const ACCENT_KEY = 'korjournal_accent_v1';
 
-    const ACCENT_COLORS = [
-      { name: 'Blå', main: '#3b82f6', hover: '#2563eb' },
-      { name: 'Grön', main: '#10b981', hover: '#059669' },
-      { name: 'Orange', main: '#f97316', hover: '#ea580c' },
-      { name: 'Lila', main: '#8b5cf6', hover: '#7c3aed' },
-      { name: 'Röd', main: '#ef4444', hover: '#dc2626' }
+    // Tillgängliga accentfärger (blå, grön, orange, lila, röd)
+    const ACCENTS = {
+      blue:    { main: '#3b82f6', hover: '#2563eb', soft: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.35)' },
+      emerald: { main: '#10b981', hover: '#059669', soft: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.35)' },
+      orange:  { main: '#f97316', hover: '#ea580c', soft: 'rgba(249, 115, 22, 0.15)', border: 'rgba(249, 115, 22, 0.35)' },
+      violet:  { main: '#8b5cf6', hover: '#7c3aed', soft: 'rgba(139, 92, 246, 0.15)', border: 'rgba(139, 92, 246, 0.35)' },
+      rose:    { main: '#ef4444', hover: '#dc2626', soft: 'rgba(239, 68, 68, 0.15)',  border: 'rgba(239, 68, 68, 0.35)' }
+    };
+
+    // Svenska månadsnamn för formatering av YYYY-MM
+    const SWEDISH_MONTHS = [
+      'Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni',
+      'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'
     ];
 
-    let trips = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    // Exempelresor fördelade på oktober och november 2026 om localStorage är tomt
+    const SAMPLE_TRIPS = [
+      {
+        id: 1794650000004,
+        date: '2026-11-14',
+        type: 'Tjänst',
+        odoStart: 45298,
+        odoEnd: 45333,
+        distance: 35,
+        startAddr: 'Kontoret, Stockholm',
+        endAddr: 'Arlanda Terminal 5',
+        purpose: 'Leverans & kundmöte'
+      },
+      {
+        id: 1794200000003,
+        date: '2026-11-08',
+        type: 'Privat',
+        odoStart: 45256,
+        odoEnd: 45298,
+        distance: 42,
+        startAddr: 'Hemadress, Hägersten',
+        endAddr: 'Södertälje Centrum',
+        purpose: 'Ärenden & familjebesök'
+      },
+      {
+        id: 1792600000002,
+        date: '2026-10-22',
+        type: 'Tjänst',
+        odoStart: 45136,
+        odoEnd: 45256,
+        distance: 120,
+        startAddr: 'Kontoret, Stockholm',
+        endAddr: 'Uppsala Science Park',
+        purpose: 'Projektgenomgång hos kund'
+      },
+      {
+        id: 1791500000001,
+        date: '2026-10-10',
+        type: 'Privat',
+        odoStart: 45108,
+        odoEnd: 45136,
+        distance: 28,
+        startAddr: 'Hemadress, Hägersten',
+        endAddr: 'Nacka Forum',
+        purpose: 'Inköp'
+      }
+    ];
 
+    // Ladda resor från localStorage
+    let trips = [];
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved !== null) {
+        trips = JSON.parse(saved);
+      } else {
+        trips = SAMPLE_TRIPS;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
+      }
+    } catch (e) {
+      trips = SAMPLE_TRIPS;
+    }
+
+    // DOM-referenser
     const form = document.getElementById('trip-form');
+    const formSection = document.getElementById('form-section');
+    const formTitleEl = document.getElementById('form-title');
+    const submitBtnEl = document.getElementById('submit-btn');
+    const cancelEditBtnEl = document.getElementById('cancel-edit-btn');
     const dateInput = document.getElementById('date');
     const odoStartInput = document.getElementById('odo-start');
     const odoEndInput = document.getElementById('odo-end');
+    const liveDistanceEl = document.getElementById('live-distance');
 
-    function initThemeAndColors() {
-      const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
-      applyTheme(savedTheme);
+    // Håller reda på ID om en befintlig resa redigeras
+    let editingTripId = null;
 
-      const savedAccent = localStorage.getItem(ACCENT_KEY) || ACCENT_COLORS[0].main;
-      const swatchContainer = document.getElementById('color-swatches');
-      swatchContainer.innerHTML = ACCENT_COLORS.map(c => `
-        <button type="button"
-          class="swatch ${c.main === savedAccent ? 'active' : ''}"
-          style="background-color: ${c.main};"
-          title="${c.name}"
-          aria-label="Färg: ${c.name}"
-          onclick="setAccent('${c.main}', '${c.hover}')">
-        </button>
-      `).join('');
+    // Växla mellan flikarna 'Körjournal' och 'Exportera'
+    function switchTab(tabName) {
+      const isJournal = tabName === 'journal';
+      const journalTab = document.getElementById('tab-journal');
+      const exportTab = document.getElementById('tab-export');
+      const journalBtn = document.getElementById('tab-btn-journal');
+      const exportBtn = document.getElementById('tab-btn-export');
 
-      const activeColorObj = ACCENT_COLORS.find(c => c.main === savedAccent) || ACCENT_COLORS[0];
-      setAccent(activeColorObj.main, activeColorObj.hover, false);
+      journalTab.classList.toggle('hidden', !isJournal);
+      exportTab.classList.toggle('hidden', isJournal);
+
+      if (isJournal) {
+        journalBtn.className = 'tab-btn bg-accent text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-colors cursor-pointer';
+        journalBtn.setAttribute('aria-selected', 'true');
+        exportBtn.className = 'tab-btn text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold py-2.5 px-4 rounded-lg text-sm transition-colors cursor-pointer';
+        exportBtn.setAttribute('aria-selected', 'false');
+      } else {
+        exportBtn.className = 'tab-btn bg-accent text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-colors cursor-pointer';
+        exportBtn.setAttribute('aria-selected', 'true');
+        journalBtn.className = 'tab-btn text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold py-2.5 px-4 rounded-lg text-sm transition-colors cursor-pointer';
+        journalBtn.setAttribute('aria-selected', 'false');
+      }
     }
 
+    // Växla mellan ljust och mörkt tema
     function applyTheme(theme) {
-      const root = document.documentElement;
+      const isDark = theme === 'dark';
+      document.documentElement.classList.toggle('dark', isDark);
       const metaTheme = document.getElementById('meta-theme-color');
-      const icon = document.getElementById('theme-icon');
-      const label = document.getElementById('theme-label');
-
-      if (theme === 'light') {
-        root.setAttribute('data-theme', 'light');
-        metaTheme.setAttribute('content', '#f1f5f9');
-        icon.textContent = '🌙';
-        label.textContent = 'Mörkt';
-      } else {
-        root.removeAttribute('data-theme');
-        metaTheme.setAttribute('content', '#0f172a');
-        icon.textContent = '☀️';
-        label.textContent = 'Ljust';
+      if (metaTheme) {
+        metaTheme.setAttribute('content', isDark ? '#0f172a' : '#f1f5f9');
       }
-      localStorage.setItem(THEME_KEY, theme);
+      try {
+        localStorage.setItem(THEME_KEY, theme);
+      } catch (e) {}
     }
 
     function toggleTheme() {
-      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-      applyTheme(isLight ? 'dark' : 'light');
+      const isDark = document.documentElement.classList.contains('dark');
+      applyTheme(isDark ? 'light' : 'dark');
     }
 
-    function setAccent(main, hover, save = true) {
-      document.documentElement.style.setProperty('--accent', main);
-      document.documentElement.style.setProperty('--accent-hover', hover);
-      if (save) {
-        localStorage.setItem(ACCENT_KEY, main);
-      }
-      document.querySelectorAll('.swatch').forEach(btn => {
-        const bg = btn.style.backgroundColor;
-        btn.classList.toggle('active', rgbToHex(bg) === main.toLowerCase());
+    // Sätt vald accentfärg
+    function setAccent(colorKey) {
+      const palette = ACCENTS[colorKey] || ACCENTS.blue;
+      const root = document.documentElement.style;
+      root.setProperty('--accent', palette.main);
+      root.setProperty('--accent-hover', palette.hover);
+      root.setProperty('--accent-soft', palette.soft);
+      root.setProperty('--accent-border', palette.border);
+
+      document.querySelectorAll('.color-dot').forEach(btn => {
+        if (btn.dataset.color === colorKey) {
+          btn.classList.add('ring-2', 'ring-slate-400', 'dark:ring-white', 'scale-110');
+        } else {
+          btn.classList.remove('ring-2', 'ring-slate-400', 'dark:ring-white', 'scale-110');
+        }
       });
+
+      try {
+        localStorage.setItem(ACCENT_KEY, colorKey);
+      } catch (e) {}
     }
 
-    function rgbToHex(rgb) {
-      if (!rgb || rgb.startsWith('#')) return (rgb || '').toLowerCase();
-      const parts = rgb.match(/\d+/g);
-      if (!parts) return '';
-      return '#' + parts.slice(0, 3).map(x => Number(x).toString(16).padStart(2, '0')).join('');
+    // Initiera sparat tema och accentfärg
+    function initAppearance() {
+      let savedTheme = 'dark';
+      let savedAccent = 'blue';
+      try {
+        savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+        savedAccent = localStorage.getItem(ACCENT_KEY) || 'blue';
+      } catch (e) {}
+      applyTheme(savedTheme);
+      setAccent(savedAccent);
     }
 
+    // Meddelanderuta (ersätter alert & confirm)
+    let toastTimeout = null;
+    function hideToast() {
+      const box = document.getElementById('toast-box');
+      if (box) box.classList.add('hidden');
+      clearTimeout(toastTimeout);
+    }
+
+    function showToast(message, type = 'info', confirmCallback = null) {
+      const box = document.getElementById('toast-box');
+      const msgEl = document.getElementById('toast-message');
+      const actionsEl = document.getElementById('toast-actions');
+      const exportTab = document.getElementById('tab-export');
+      const tripListSection = document.getElementById('trip-list-section');
+
+      // Placera rutan i aktiv flik (ovanför registrerade resor i journalfliken)
+      if (exportTab && !exportTab.classList.contains('hidden')) {
+        exportTab.prepend(box);
+      } else if (tripListSection && tripListSection.parentNode) {
+        tripListSection.parentNode.insertBefore(box, tripListSection);
+      }
+
+      clearTimeout(toastTimeout);
+      msgEl.textContent = message;
+      actionsEl.innerHTML = '';
+
+      box.className = 'mb-4 p-3.5 rounded-xl border text-sm font-medium flex justify-between items-center transition-all';
+      if (type === 'error') {
+        box.classList.add('bg-red-500/15', 'border-red-500/30', 'text-red-700', 'dark:text-red-300');
+      } else if (type === 'confirm') {
+        box.classList.add('bg-amber-500/15', 'border-amber-500/30', 'text-amber-800', 'dark:text-amber-200');
+      } else {
+        box.classList.add('bg-emerald-500/15', 'border-emerald-500/30', 'text-emerald-800', 'dark:text-emerald-300');
+      }
+
+      if (confirmCallback) {
+        const yesBtn = document.createElement('button');
+        yesBtn.type = 'button';
+        yesBtn.textContent = 'Ta bort';
+        yesBtn.className = 'bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer';
+        yesBtn.onclick = () => {
+          hideToast();
+          confirmCallback();
+        };
+
+        const noBtn = document.createElement('button');
+        noBtn.type = 'button';
+        noBtn.textContent = 'Avbryt';
+        noBtn.className = 'bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer';
+        noBtn.onclick = hideToast;
+
+        actionsEl.appendChild(yesBtn);
+        actionsEl.appendChild(noBtn);
+      } else {
+        toastTimeout = setTimeout(hideToast, 3500);
+      }
+
+      box.classList.remove('hidden');
+    }
+
+    // Uppdatera live-beräkning av körsträcka i formuläret
+    function updateLiveDistance() {
+      const start = Number(odoStartInput.value);
+      const end = Number(odoEndInput.value);
+      if (odoStartInput.value !== '' && odoEndInput.value !== '' && end >= start) {
+        liveDistanceEl.textContent = `Sträcka: ${end - start} km`;
+      } else {
+        liveDistanceEl.textContent = 'Sträcka: 0 km';
+      }
+    }
+
+    odoStartInput.addEventListener('input', updateLiveDistance);
+    odoEndInput.addEventListener('input', updateLiveDistance);
+
+    // Sätt dagens datum och föreslå senaste mätarställning
     function initForm() {
       dateInput.value = new Date().toISOString().split('T')[0];
       if (trips.length > 0) {
@@ -516,25 +556,65 @@
       } else {
         odoStartInput.value = '';
       }
+      updateLiveDistance();
     }
 
+    // Spara till localStorage och rendera om
     function saveTrips() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
+      } catch (e) {
+        showToast('Kunde inte spara lokalt i webbläsaren.', 'error');
+      }
       render();
     }
 
+    // Ladda in en befintlig resa i formuläret för redigering
+    function editTrip(id) {
+      const trip = trips.find(t => t.id === id);
+      if (!trip) return;
+
+      editingTripId = id;
+      dateInput.value = trip.date;
+      document.getElementById('type').value = trip.type;
+      odoStartInput.value = trip.odoStart;
+      odoEndInput.value = trip.odoEnd;
+      document.getElementById('start-addr').value = trip.startAddr;
+      document.getElementById('end-addr').value = trip.endAddr;
+      document.getElementById('purpose').value = trip.purpose || '';
+
+      formTitleEl.textContent = 'Redigera resa';
+      submitBtnEl.textContent = 'Uppdatera resa';
+      cancelEditBtnEl.classList.remove('hidden');
+      formSection.classList.add('ring-2', 'ring-blue-500/40');
+
+      updateLiveDistance();
+      formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Avbryt redigering och återställ formuläret
+    function cancelEdit() {
+      editingTripId = null;
+      form.reset();
+      formTitleEl.textContent = 'Registrera resa';
+      submitBtnEl.textContent = 'Spara resa';
+      cancelEditBtnEl.classList.add('hidden');
+      formSection.classList.remove('ring-2', 'ring-blue-500/40');
+      initForm();
+    }
+
+    // Hantera formulärinlämning (ny resa eller uppdatering)
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const start = Number(odoStartInput.value);
       const end = Number(odoEndInput.value);
 
       if (end < start) {
-        alert('Slutmätarställning kan inte vara lägre än startmätarställning.');
+        showToast('Slutmätarställning kan inte vara lägre än startmätarställning.', 'error');
         return;
       }
 
-      const trip = {
-        id: Date.now(),
+      const tripData = {
         date: dateInput.value,
         type: document.getElementById('type').value,
         odoStart: start,
@@ -545,56 +625,295 @@
         purpose: document.getElementById('purpose').value.trim()
       };
 
-      trips.unshift(trip);
-      trips.sort((a, b) => b.date.localeCompare(a.date) || b.odoEnd - a.odoEnd);
-
-      saveTrips();
-      form.reset();
-      initForm();
+      if (editingTripId !== null) {
+        const index = trips.findIndex(t => t.id === editingTripId);
+        if (index !== -1) {
+          trips[index] = { id: editingTripId, ...tripData };
+        }
+        cancelEdit();
+        trips.sort((a, b) => b.date.localeCompare(a.date) || b.odoEnd - a.odoEnd);
+        saveTrips();
+        showToast('Resan har uppdaterats.');
+      } else {
+        trips.unshift({ id: Date.now(), ...tripData });
+        trips.sort((a, b) => b.date.localeCompare(a.date) || b.odoEnd - a.odoEnd);
+        saveTrips();
+        form.reset();
+        initForm();
+        showToast('Resan har sparats i körjournalen.');
+      }
     });
 
+    // Ta bort en resa med bekräftelse ovanför reselistan
     function deleteTrip(id) {
-      if (confirm('Vill du ta bort denna resa?')) {
+      showToast('Vill du ta bort denna resa?', 'confirm', () => {
+        if (editingTripId === id) {
+          cancelEdit();
+        }
         trips = trips.filter(t => t.id !== id);
         saveTrips();
-        initForm();
+        if (editingTripId === null) {
+          initForm();
+        }
+        showToast('Resan togs bort.');
+      });
+    }
+
+    // Formatera YYYY-MM till svensk månad och år (t.ex. "November 2026")
+    function formatMonthLabel(ym) {
+      if (!ym || ym.length < 7) return ym;
+      const [year, month] = ym.split('-');
+      const monthIdx = parseInt(month, 10) - 1;
+      const monthName = SWEDISH_MONTHS[monthIdx] || month;
+      return `${monthName} ${year}`;
+    }
+
+    // Välj månad i exportväljaren från månadskorten
+    function selectExportMonth(ym) {
+      const select = document.getElementById('export-month-select');
+      if (select) {
+        select.value = ym;
+        updateExportSummary();
+        select.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
 
+    // Uppdatera månadsväljaren, export-sammanställningen och månadsöversikten
+    function renderMonthlyOverview() {
+      const select = document.getElementById('export-month-select');
+      const overviewList = document.getElementById('monthly-overview-list');
+      const previousValue = select.value;
+
+      // Gruppera resor per månad (YYYY-MM)
+      const monthMap = {};
+      trips.forEach(t => {
+        const ym = (t.date || '').slice(0, 7);
+        if (!ym) return;
+        if (!monthMap[ym]) {
+          monthMap[ym] = { ym, count: 0, total: 0, work: 0, priv: 0 };
+        }
+        const dist = Number(t.distance) || 0;
+        monthMap[ym].count += 1;
+        monthMap[ym].total += dist;
+        if (t.type === 'Tjänst') monthMap[ym].work += dist;
+        else monthMap[ym].priv += dist;
+      });
+
+      const sortedMonths = Object.values(monthMap).sort((a, b) => b.ym.localeCompare(a.ym));
+
+      // Uppdatera dropdown-listan
+      select.innerHTML = `<option value="all">Alla månader (${trips.length} st)</option>` +
+        sortedMonths.map(m => `<option value="${m.ym}">${formatMonthLabel(m.ym)} (${m.count} st)</option>`).join('');
+
+      if ([...select.options].some(opt => opt.value === previousValue)) {
+        select.value = previousValue;
+      } else {
+        select.value = 'all';
+      }
+
+      // Rendera månadskort under Export-fliken
+      if (sortedMonths.length === 0) {
+        overviewList.innerHTML = `
+          <div class="text-center text-slate-500 dark:text-slate-400 py-8 px-4 text-sm bg-slate-50 dark:bg-[#0f172a] border border-dashed border-slate-300 dark:border-[#334155] rounded-xl">
+            Inga registrerade resor att sammanställa per månad ännu.
+          </div>
+        `;
+      } else {
+        overviewList.innerHTML = sortedMonths.map(m => `
+          <div onclick="selectExportMonth('${m.ym}')"
+            class="bg-slate-50 dark:bg-[#0f172a] hover:border-accent border border-slate-200 dark:border-[#334155] rounded-xl p-4 cursor-pointer transition-colors">
+            <div class="flex justify-between items-center mb-2.5">
+              <div>
+                <h3 class="font-semibold text-sm text-slate-900 dark:text-slate-100">${formatMonthLabel(m.ym)}</h3>
+                <span class="text-xs text-slate-500 dark:text-slate-400">${m.count} ${m.count === 1 ? 'resa' : 'resor'}</span>
+              </div>
+              <div class="text-right">
+                <span class="text-base font-bold text-slate-900 dark:text-slate-50 tabular-nums">${m.total} km</span>
+                <div class="text-[11px] text-slate-500 dark:text-slate-400">Totalt</div>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-slate-200 dark:border-[#334155] text-xs">
+              <div class="flex justify-between items-center bg-white dark:bg-[#1e293b] px-2.5 py-1.5 rounded-lg border border-slate-200/70 dark:border-[#334155]/70">
+                <span class="text-slate-500 dark:text-slate-400">Tjänst:</span>
+                <strong class="font-semibold text-accent tabular-nums">${m.work} km</strong>
+              </div>
+              <div class="flex justify-between items-center bg-white dark:bg-[#1e293b] px-2.5 py-1.5 rounded-lg border border-slate-200/70 dark:border-[#334155]/70">
+                <span class="text-slate-500 dark:text-slate-400">Privat:</span>
+                <strong class="font-semibold text-amber-600 dark:text-amber-400 tabular-nums">${m.priv} km</strong>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      updateExportSummary();
+    }
+
+    // Uppdatera sammanställningen i exportrutan efter vald period
+    function updateExportSummary() {
+      const selectedPeriod = document.getElementById('export-month-select').value;
+      const filtered = selectedPeriod === 'all'
+        ? trips
+        : trips.filter(t => (t.date || '').startsWith(selectedPeriod));
+
+      let totalKm = 0, workKm = 0, privKm = 0;
+      filtered.forEach(t => {
+        const dist = Number(t.distance) || 0;
+        totalKm += dist;
+        if (t.type === 'Tjänst') workKm += dist;
+        else privKm += dist;
+      });
+
+      document.getElementById('exp-count').textContent = `${filtered.length} st`;
+      document.getElementById('exp-work').textContent = `${workKm} km`;
+      document.getElementById('exp-priv').textContent = `${privKm} km`;
+      document.getElementById('exp-total').textContent = `${totalKm} km`;
+    }
+
+    // Exportera vald månad eller alla resor som en äkta .xlsx-fil med sammanställning centrerad mot mitten
+    function exportExcel() {
+      const selectedPeriod = document.getElementById('export-month-select').value;
+      const filteredTrips = selectedPeriod === 'all'
+        ? trips
+        : trips.filter(t => (t.date || '').startsWith(selectedPeriod));
+
+      if (filteredTrips.length === 0) {
+        showToast('Ingen data att exportera för vald period.', 'error');
+        return;
+      }
+
+      if (typeof XLSX === 'undefined') {
+        showToast('Excel-biblioteket kunde inte laddas. Kontrollera internetanslutningen.', 'error');
+        return;
+      }
+
+      let totalKm = 0, workKm = 0, privKm = 0;
+      let workCount = 0, privCount = 0;
+
+      filteredTrips.forEach(t => {
+        const dist = Number(t.distance) || 0;
+        totalKm += dist;
+        if (t.type === 'Tjänst') {
+          workKm += dist;
+          workCount += 1;
+        } else {
+          privKm += dist;
+          privCount += 1;
+        }
+      });
+
+      const periodTitle = selectedPeriod === 'all' ? 'Alla månader' : formatMonthLabel(selectedPeriod);
+
+      // Bygg matris för Excel-arket (kolumn A-H)
+      const aoa = [
+        ['Datum', 'Typ', 'Startmätare (km)', 'Slutmätare (km)', 'Sträcka (km)', 'Från', 'Till', 'Ändamål']
+      ];
+
+      filteredTrips.forEach(t => {
+        aoa.push([
+          t.date,
+          t.type,
+          Number(t.odoStart),
+          Number(t.odoEnd),
+          Number(t.distance),
+          t.startAddr,
+          t.endAddr,
+          t.purpose || ''
+        ]);
+      });
+
+      // Tom rad och sedan sammanställningen centrerad mot mitten (kolumn C, D, E)
+      aoa.push([]);
+      aoa.push(['', '', `Sammanställning (${periodTitle})`, 'Antal resor', 'Körsträcka (km)', '', '', '']);
+      aoa.push(['', '', 'Tjänsteresor', workCount, workKm, '', '', '']);
+      aoa.push(['', '', 'Privatresor', privCount, privKm, '', '', '']);
+      aoa.push(['', '', 'Totalt', filteredTrips.length, totalKm, '', '', '']);
+
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+      // Anpassa kolumnbredder så att text och siffror får gott om utrymme
+      ws['!cols'] = [
+        { wch: 13 }, // A: Datum
+        { wch: 11 }, // B: Typ
+        { wch: 28 }, // C: Startmätare / Sammanställningsetikett
+        { wch: 18 }, // D: Slutmätare / Antal resor
+        { wch: 18 }, // E: Sträcka (km) / Körsträcka (km)
+        { wch: 24 }, // F: Från
+        { wch: 24 }, // G: Till
+        { wch: 28 }  // H: Ändamål
+      ];
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Körjournal');
+
+      const suffix = selectedPeriod === 'all' ? new Date().toISOString().split('T')[0] : selectedPeriod;
+      XLSX.writeFile(wb, `korjournal_${suffix}.xlsx`);
+
+      showToast(`Excel-fil (.xlsx) för ${periodTitle.toLowerCase()} exporterad.`);
+    }
+
+    // Rendera översiktskort (i km), reselista och månadsöversikt
     function render() {
       const listEl = document.getElementById('trip-list');
       let totalKm = 0, workKm = 0, privKm = 0;
 
       trips.forEach(t => {
-        totalKm += Number(t.distance);
-        if (t.type === 'Tjänst') workKm += Number(t.distance);
-        else privKm += Number(t.distance);
+        const dist = Number(t.distance) || 0;
+        totalKm += dist;
+        if (t.type === 'Tjänst') workKm += dist;
+        else privKm += dist;
       });
 
       document.getElementById('stat-total').textContent = `${totalKm} km`;
       document.getElementById('stat-work').textContent = `${workKm} km`;
       document.getElementById('stat-priv').textContent = `${privKm} km`;
+      document.getElementById('trip-count').textContent = `${trips.length} st`;
 
       if (trips.length === 0) {
-        listEl.innerHTML = '<div class="empty-state">Inga resor registrerade ännu.</div>';
-        return;
+        listEl.innerHTML = `
+          <div class="text-center text-slate-500 dark:text-slate-400 py-10 px-4 text-sm bg-white dark:bg-[#1e293b] border border-dashed border-slate-300 dark:border-[#334155] rounded-xl">
+            Inga resor registrerade ännu. Fyll i formuläret ovan för att börja.
+          </div>
+        `;
+      } else {
+        listEl.innerHTML = trips.map(t => `
+          <article class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-[#334155] rounded-xl p-4 flex justify-between items-start gap-3 shadow-sm transition-colors">
+            <div class="min-w-0 flex-1">
+              <div class="text-xs text-slate-500 dark:text-slate-400 mb-1">${escapeHTML(t.date)}</div>
+              <div class="font-semibold text-sm sm:text-base text-slate-900 dark:text-slate-100 truncate">
+                ${escapeHTML(t.startAddr)} <span class="text-slate-400 dark:text-slate-500 mx-1">→</span> ${escapeHTML(t.endAddr)}
+              </div>
+              ${t.purpose ? `<div class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">${escapeHTML(t.purpose)}</div>` : ''}
+              <div class="text-xs text-slate-500 dark:text-slate-400 mt-2 tabular-nums">
+                Mätare: ${t.odoStart} – ${t.odoEnd} km
+              </div>
+            </div>
+
+            <div class="text-right shrink-0 flex flex-col items-end">
+              <span class="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-md mb-1.5 ${
+                t.type === 'Tjänst'
+                  ? 'bg-accent-soft text-accent border border-accent'
+                  : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+              }">
+                ${escapeHTML(t.type)}
+              </span>
+              <div class="text-base font-bold text-slate-900 dark:text-slate-50 tabular-nums">${t.distance} km</div>
+              <div class="flex items-center gap-2.5 mt-2">
+                <button type="button" onclick="editTrip(${t.id})"
+                  class="text-xs text-slate-500 dark:text-slate-400 hover:text-accent py-1 px-1 transition-colors cursor-pointer">
+                  Redigera
+                </button>
+                <button type="button" onclick="deleteTrip(${t.id})"
+                  class="text-xs text-slate-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 py-1 px-1 transition-colors cursor-pointer">
+                  Ta bort
+                </button>
+              </div>
+            </div>
+          </article>
+        `).join('');
       }
 
-      listEl.innerHTML = trips.map(t => `
-        <div class="trip-item">
-          <div>
-            <div class="trip-meta">${escapeHTML(t.date)}</div>
-            <div class="trip-route">${escapeHTML(t.startAddr)} → ${escapeHTML(t.endAddr)}</div>
-            ${t.purpose ? `<div class="trip-purpose">${escapeHTML(t.purpose)}</div>` : ''}
-            <div class="trip-odo">Mätare: ${t.odoStart} – ${t.odoEnd} km</div>
-          </div>
-          <div class="trip-right">
-            <span class="badge ${t.type === 'Tjänst' ? 'badge-work' : 'badge-priv'}">${escapeHTML(t.type)}</span>
-            <div class="trip-dist">${t.distance} km</div>
-            <button type="button" class="btn-delete" onclick="deleteTrip(${t.id})">Ta bort</button>
-          </div>
-        </div>
-      `).join('');
+      renderMonthlyOverview();
     }
 
     function escapeHTML(str) {
@@ -603,82 +922,15 @@
       }[tag]));
     }
 
-    function exportCSV() {
-      if (trips.length === 0) return alert('Ingen data att exportera.');
-      const headers = ['Datum', 'Typ', 'Startmätare (km)', 'Slutmätare (km)', 'Sträcka (km)', 'Från', 'Till', 'Ändamål'];
-      const rows = trips.map(t => [
-        t.date,
-        t.type,
-        t.odoStart,
-        t.odoEnd,
-        t.distance,
-        `"${String(t.startAddr).replace(/"/g, '""')}"`,
-        `"${String(t.endAddr).replace(/"/g, '""')}"`,
-        `"${String(t.purpose).replace(/"/g, '""')}"`
-      ]);
-
-      const csvText = [headers.join(';'), ...rows.map(r => r.join(';'))].join('\r\n');
-      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-      const blob = new Blob([bom, csvText], { type: 'text/csv;charset=utf-8;' });
-      
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `korjournal_${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    function exportJSON() {
-      const jsonContent = JSON.stringify(trips, null, 2);
-      downloadFile(jsonContent, `korjournal_backup_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
-    }
-
-    function importJSON(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if (Array.isArray(imported)) {
-            if (confirm(`Vill du ersätta nuvarande journal med ${imported.length} importerade resor?`)) {
-              trips = imported;
-              saveTrips();
-              initForm();
-            }
-          } else {
-            alert('Ogiltigt filformat.');
-          }
-        } catch (err) {
-          alert('Kunde inte läsa backup-filen.');
-        }
-      };
-      reader.readAsText(file);
-      event.target.value = '';
-    }
-
-    function downloadFile(content, filename, mimeType) {
-      const blob = new Blob([content], { type: mimeType });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    if ('serviceWorker' in navigator) {
+    // Registrera Service Worker för GitHub Pages (relativ sökväg)
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.error('SW-fel:', err));
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
       });
     }
 
-    initThemeAndColors();
+    // Starta applikationen
+    initAppearance();
     initForm();
     render();
   </script>
