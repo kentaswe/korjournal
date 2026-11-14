@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Körjournal</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <meta name="theme-color" id="meta-theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --input-bg: #0f172a;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #10b981;
+      --danger: #ef4444;
+      --work-bg: rgba(59, 130, 246, 0.18);
+      --work-text: #60a5fa;
+      --priv-bg: rgba(245, 158, 11, 0.18);
+      --priv-text: #fbbf24;
+    }
+
+    [data-theme="light"] {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
+      --input-bg: #f8fafc;
+      --work-bg: rgba(59, 130, 246, 0.14);
+      --work-text: #2563eb;
+      --priv-bg: rgba(217, 119, 6, 0.14);
+      --priv-text: #d97706;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 16px;
+      padding-bottom: 60px;
+      max-width: 720px;
+      margin: 0 auto;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1 { font-size: 1.4rem; font-weight: 700; }
+
+    .status-badge {
+      font-size: 0.72rem;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      font-weight: 600;
+    }
+
+    .theme-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .color-swatches {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      padding: 5px 8px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .swatch {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    .swatch:hover { transform: scale(1.15); }
+    .swatch.active {
+      border-color: var(--text);
+      transform: scale(1.15);
+    }
+
+    .theme-toggle {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 500;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 1.05rem;
+      margin-bottom: 14px;
+      color: var(--text);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .full-width { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, background-color 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+      margin-top: 6px;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 9px 12px;
+      font-size: 0.85rem;
+      width: auto;
+      flex: 1;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+    }
+
+    .trip-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .trip-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .trip-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .trip-route {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+
+    .trip-purpose {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .trip-odo {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .trip-right {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .trip-dist {
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 5px;
+      margin-bottom: 6px;
+    }
+
+    .badge-work {
+      background: var(--work-bg);
+      color: var(--work-text);
+    }
+
+    .badge-priv {
+      background: var(--priv-bg);
+      color: var(--priv-text);
+    }
+
+    .btn-delete {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      margin-top: 8px;
+      padding: 4px;
+    }
+
+    .btn-delete:hover {
+      color: var(--danger);
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      padding: 32px 16px;
+      font-size: 0.9rem;
+      background: var(--card);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <h1>Körjournal</h1>
+      <span class="status-badge">PWA</span>
+    </div>
+    <div class="theme-controls">
+      <div class="color-swatches" id="color-swatches" aria-label="Välj accentfärg"></div>
+      <button type="button" class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
+        <span id="theme-icon">☀️</span>
+        <span id="theme-label">Ljust</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="summary-grid">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-total">0 km</div>
+      <div class="stat-label">Totalt</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-work" style="color: var(--work-text);">0 km</div>
+      <div class="stat-label">Tjänst</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-priv" style="color: var(--priv-text);">0 km</div>
+      <div class="stat-label">Privat</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Registrera resa</h2>
+    <form id="trip-form" class="form-grid">
+      <div>
+        <label for="date">Datum</label>
+        <input type="date" id="date" required>
+      </div>
+      <div>
+        <label for="type">Typ av resa</label>
+        <select id="type" required>
+          <option value="Tjänst">Tjänsteresa</option>
+          <option value="Privat">Privatresa</option>
+        </select>
+      </div>
+      <div>
+        <label for="odo-start">Mätarställning start (km)</label>
+        <input type="number" id="odo-start" inputmode="numeric" placeholder="t.ex. 12450" required>
+      </div>
+      <div>
+        <label for="odo-end">Mätarställning slut (km)</label>
+        <input type="number" id="odo-end" inputmode="numeric" placeholder="t.ex. 12485" required>
+      </div>
+      <div>
+        <label for="start-addr">Startadress / Ort</label>
+        <input type="text" id="start-addr" placeholder="Från" required>
+      </div>
+      <div>
+        <label for="end-addr">Slutadress / Ort</label>
+        <input type="text" id="end-addr" placeholder="Till" required>
+      </div>
+      <div class="full-width">
+        <label for="purpose">Ändamål / Anteckning (krävs vid tjänsteresa)</label>
+        <input type="text" id="purpose" placeholder="t.ex. Kundbesök, service, materialinköp">
+      </div>
+      <div class="full-width">
+        <button type="submit" class="btn btn-primary">Spara resa</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="toolbar">
+    <button type="button" class="btn btn-secondary" onclick="exportCSV()">Exportera CSV</button>
+    <button type="button" class="btn btn-secondary" onclick="exportJSON()">Backup (JSON)</button>
+    <button type="button" class="btn btn-secondary" onclick="document.getElementById('import-file').click()">Återställ</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
+  </div>
+
+  <div id="trip-list" class="trip-list"></div>
+
+  <script>
+    const STORAGE_KEY = 'korjournal_trips_v1';
+    const THEME_KEY = 'korjournal_theme';
+    const ACCENT_KEY = 'korjournal_accent';
+
+    const ACCENT_COLORS = [
+      { name: 'Blå', main: '#3b82f6', hover: '#2563eb' },
+      { name: 'Grön', main: '#10b981', hover: '#059669' },
+      { name: 'Orange', main: '#f97316', hover: '#ea580c' },
+      { name: 'Lila', main: '#8b5cf6', hover: '#7c3aed' },
+      { name: 'Röd', main: '#ef4444', hover: '#dc2626' }
+    ];
+
+    let trips = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+    const form = document.getElementById('trip-form');
+    const dateInput = document.getElementById('date');
+    const odoStartInput = document.getElementById('odo-start');
+    const odoEndInput = document.getElementById('odo-end');
+
+    function initThemeAndColors() {
+      const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+      applyTheme(savedTheme);
+
+      const savedAccent = localStorage.getItem(ACCENT_KEY) || ACCENT_COLORS[0].main;
+      const swatchContainer = document.getElementById('color-swatches');
+      swatchContainer.innerHTML = ACCENT_COLORS.map(c => `
+        <button type="button"
+          class="swatch ${c.main === savedAccent ? 'active' : ''}"
+          style="background-color: ${c.main};"
+          title="${c.name}"
+          aria-label="Färg: ${c.name}"
+          onclick="setAccent('${c.main}', '${c.hover}')">
+        </button>
+      `).join('');
+
+      const activeColorObj = ACCENT_COLORS.find(c => c.main === savedAccent) || ACCENT_COLORS[0];
+      setAccent(activeColorObj.main, activeColorObj.hover, false);
+    }
+
+    function applyTheme(theme) {
+      const root = document.documentElement;
+      const metaTheme = document.getElementById('meta-theme-color');
+      const icon = document.getElementById('theme-icon');
+      const label = document.getElementById('theme-label');
+
+      if (theme === 'light') {
+        root.setAttribute('data-theme', 'light');
+        metaTheme.setAttribute('content', '#f1f5f9');
+        icon.textContent = '🌙';
+        label.textContent = 'Mörkt';
+      } else {
+        root.removeAttribute('data-theme');
+        metaTheme.setAttribute('content', '#0f172a');
+        icon.textContent = '☀️';
+        label.textContent = 'Ljust';
+      }
+      localStorage.setItem(THEME_KEY, theme);
+    }
+
+    function toggleTheme() {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      applyTheme(isLight ? 'dark' : 'light');
+    }
+
+    function setAccent(main, hover, save = true) {
+      document.documentElement.style.setProperty('--accent', main);
+      document.documentElement.style.setProperty('--accent-hover', hover);
+      if (save) {
+        localStorage.setItem(ACCENT_KEY, main);
+      }
+      document.querySelectorAll('.swatch').forEach(btn => {
+        const bg = btn.style.backgroundColor;
+        btn.classList.toggle('active', rgbToHex(bg) === main.toLowerCase());
+      });
+    }
+
+    function rgbToHex(rgb) {
+      if (!rgb || rgb.startsWith('#')) return (rgb || '').toLowerCase();
+      const parts = rgb.match(/\d+/g);
+      if (!parts) return '';
+      return '#' + parts.slice(0, 3).map(x => Number(x).toString(16).padStart(2, '0')).join('');
+    }
+
+    function initForm() {
+      dateInput.value = new Date().toISOString().split('T')[0];
+      if (trips.length > 0) {
+        const highestOdo = Math.max(...trips.map(t => Number(t.odoEnd)));
+        odoStartInput.value = highestOdo;
+      } else {
+        odoStartInput.value = '';
+      }
+    }
+
+    function saveTrips() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
+      render();
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const start = Number(odoStartInput.value);
+      const end = Number(odoEndInput.value);
+
+      if (end < start) {
+        alert('Slutmätarställning kan inte vara lägre än startmätarställning.');
+        return;
+      }
+
+      const trip = {
+        id: Date.now(),
+        date: dateInput.value,
+        type: document.getElementById('type').value,
+        odoStart: start,
+        odoEnd: end,
+        distance: end - start,
+        startAddr: document.getElementById('start-addr').value.trim(),
+        endAddr: document.getElementById('end-addr').value.trim(),
+        purpose: document.getElementById('purpose').value.trim()
+      };
+
+      trips.unshift(trip);
+      trips.sort((a, b) => b.date.localeCompare(a.date) || b.odoEnd - a.odoEnd);
+
+      saveTrips();
+      form.reset();
+      initForm();
+    });
+
+    function deleteTrip(id) {
+      if (confirm('Vill du ta bort denna resa?')) {
+        trips = trips.filter(t => t.id !== id);
+        saveTrips();
+        initForm();
+      }
+    }
+
+    function render() {
+      const listEl = document.getElementById('trip-list');
+      let totalKm = 0, workKm = 0, privKm = 0;
+
+      trips.forEach(t => {
+        totalKm += Number(t.distance);
+        if (t.type === 'Tjänst') workKm += Number(t.distance);
+        else privKm += Number(t.distance);
+      });
+
+      document.getElementById('stat-total').textContent = `${totalKm} km`;
+      document.getElementById('stat-work').textContent = `${workKm} km`;
+      document.getElementById('stat-priv').textContent = `${privKm} km`;
+
+      if (trips.length === 0) {
+        listEl.innerHTML = '<div class="empty-state">Inga resor registrerade ännu.</div>';
+        return;
+      }
+
+      listEl.innerHTML = trips.map(t => `
+        <div class="trip-item">
+          <div>
+            <div class="trip-meta">${escapeHTML(t.date)}</div>
+            <div class="trip-route">${escapeHTML(t.startAddr)} → ${escapeHTML(t.endAddr)}</div>
+            ${t.purpose ? `<div class="trip-purpose">${escapeHTML(t.purpose)}</div>` : ''}
+            <div class="trip-odo">Mätare: ${t.odoStart} – ${t.odoEnd} km</div>
+          </div>
+          <div class="trip-right">
+            <span class="badge ${t.type === 'Tjänst' ? 'badge-work' : 'badge-priv'}">${escapeHTML(t.type)}</span>
+            <div class="trip-dist">${t.distance} km</div>
+            <button type="button" class="btn-delete" onclick="deleteTrip(${t.id})">Ta bort</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHTML(str) {
+      return String(str).replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[tag]));
+    }
+
+    function exportCSV() {
+      if (trips.length === 0) return alert('Ingen data att exportera.');
+      const headers = ['Datum', 'Typ', 'Startmätare (km)', 'Slutmätare (km)', 'Sträcka (km)', 'Från', 'Till', 'Ändamål'];
+      const rows = trips.map(t => [
+        t.date,
+        t.type,
+        t.odoStart,
+        t.odoEnd,
+        t.distance,
+        `"${String(t.startAddr).replace(/"/g, '""')}"`,
+        `"${String(t.endAddr).replace(/"/g, '""')}"`,
+        `"${String(t.purpose).replace(/"/g, '""')}"`
+      ]);
+
+      const csvContent = '\uFEFF' + [headers.join(';'), ...rows.map(r => r.join(';'))].join('\n');
+      downloadFile(csvContent, `korjournal_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv;charset=utf-8;');
+    }
+
+    function exportJSON() {
+      const jsonContent = JSON.stringify(trips, null, 2);
+      downloadFile(jsonContent, `korjournal_backup_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            if (confirm(`Vill du ersätta nuvarande journal med ${imported.length} importerade resor?`)) {
+              trips = imported;
+              saveTrips();
+              initForm();
+            }
+          } else {
+            alert('Ogiltigt filformat.');
+          }
+        } catch (err) {
+          alert('Kunde inte läsa backup-filen.');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function downloadFile(content, filename, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.error('SW-fel:', err));
+      });
+    }
+
+    initThemeAndColors();
+    initForm();
+    render();
+  </script>
+</body>
+</html>
