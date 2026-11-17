@@ -118,7 +118,7 @@
   <!-- Inställningsmodal -->
   <div id="settings-modal" onclick="if(event.target === this) toggleSettingsModal(false)"
     class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-[#232f42] border border-slate-200 dark:border-[#334155] rounded-2xl w-full max-w-sm p-5 shadow-xl space-y-5">
+    <div class="bg-white dark:bg-[#232f42] border border-slate-200 dark:border-[#334155] rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto p-5 shadow-xl space-y-5">
       <div class="flex items-center justify-between">
         <h2 class="text-base font-bold text-slate-900 dark:text-white">Inställningar</h2>
         <button type="button" onclick="toggleSettingsModal(false)" aria-label="Stäng"
@@ -233,6 +233,84 @@
     </div>
   </div>
 
+  <!-- Favoriter-modal (Lägg till, redigera & ta bort favoriter) -->
+  <div id="favorites-modal" onclick="if(event.target === this) toggleFavoritesModal(false)"
+    class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#232f42] border border-slate-200 dark:border-[#334155] rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto p-5 shadow-xl space-y-5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-accent" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+          </svg>
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">Hantera favoriter</h2>
+        </div>
+        <button type="button" onclick="toggleFavoritesModal(false)" aria-label="Stäng"
+          class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#2f3d54] cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Favorit-orter -->
+      <div class="space-y-2.5">
+        <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">Favorit-orter</p>
+        <div class="flex gap-1.5">
+          <input type="text" id="new-fav-place-input" placeholder="Ny ort eller adress..."
+            onkeydown="if(event.key === 'Enter'){ event.preventDefault(); addFavoritePlaceFromModal(); }"
+            class="flex-1 bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-white px-2.5 py-2 rounded-lg text-xs font-medium focus:outline-none focus:border-accent transition-colors">
+          <button type="button" onclick="addFavoritePlaceFromModal()"
+            class="px-3 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-semibold transition-colors cursor-pointer shrink-0">
+            Lägg till
+          </button>
+        </div>
+        <div id="manage-fav-places" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
+      </div>
+
+      <!-- Favorit-ändamål -->
+      <div class="pt-3 border-t border-slate-100 dark:border-[#334155] space-y-2.5">
+        <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">Favorit-ändamål</p>
+        <div class="flex gap-1.5">
+          <input type="text" id="new-fav-purpose-input" placeholder="Nytt ändamål..."
+            onkeydown="if(event.key === 'Enter'){ event.preventDefault(); addFavoritePurposeFromModal(); }"
+            class="flex-1 bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-white px-2.5 py-2 rounded-lg text-xs font-medium focus:outline-none focus:border-accent transition-colors">
+          <button type="button" onclick="addFavoritePurposeFromModal()"
+            class="px-3 py-2 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-semibold transition-colors cursor-pointer shrink-0">
+            Lägg till
+          </button>
+        </div>
+        <div id="manage-fav-purposes" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
+      </div>
+
+      <button type="button" onclick="toggleFavoritesModal(false)"
+        class="w-full bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] hover:border-accent text-slate-800 dark:text-slate-100 font-semibold py-2.5 px-4 rounded-xl text-xs transition-colors cursor-pointer">
+        Klar
+      </button>
+    </div>
+  </div>
+
+  <!-- Bekräftelsemodal vid borttagning av resa -->
+  <div id="delete-modal" onclick="if(event.target === this) closeDeleteModal()"
+    class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#232f42] border border-slate-200 dark:border-[#334155] rounded-2xl w-full max-w-sm p-5 shadow-xl space-y-4">
+      <div class="space-y-1.5">
+        <h2 class="text-base font-bold text-slate-900 dark:text-white">Ta bort resa?</h2>
+        <p id="delete-modal-desc" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+          Är du säker på att du vill ta bort den här resan?
+        </p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5 pt-1">
+        <button type="button" onclick="closeDeleteModal()"
+          class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-[#334155] transition-colors cursor-pointer">
+          Nej
+        </button>
+        <button type="button" onclick="confirmDeleteTrip()"
+          class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors cursor-pointer">
+          Ja, ta bort
+        </button>
+      </div>
+    </div>
+  </div>
+
   <main class="max-w-2xl mx-auto px-4 pt-5 space-y-5">
 
     <!-- ==================== FLIK 1: REGISTRERA ==================== -->
@@ -240,15 +318,31 @@
 
       <!-- Formulärkort -->
       <section id="form-section" class="bg-white dark:bg-[#232f42] rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-[#334155] shadow-sm">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between gap-2 mb-4">
           <h2 id="form-title" class="text-base font-bold text-slate-900 dark:text-white">Registrera resa</h2>
-          <button type="button" id="cancel-edit-btn" onclick="cancelEdit()"
-            class="hidden text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#2f3d54] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer">
-            Avbryt redigering
-          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="toggleFavoritesModal(true)" title="Lägg till eller redigera favoriter"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] text-slate-700 dark:text-slate-200 hover:border-accent transition-colors cursor-pointer">
+              <svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+              </svg>
+              <span>Favoriter</span>
+            </button>
+            <button type="button" id="cancel-edit-btn" onclick="cancelEdit()"
+              class="hidden text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#2f3d54] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+              Avbryt
+            </button>
+          </div>
         </div>
 
         <form id="trip-form" class="space-y-4">
+          <!-- Datumfält (visas endast vid redigering av befintlig resa) -->
+          <div id="edit-date-wrapper" class="hidden">
+            <label for="edit-date" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Datum</label>
+            <input type="date" id="edit-date"
+              class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-semibold focus:outline-none focus:border-accent transition-colors">
+          </div>
+
           <!-- Typ av resa -->
           <div>
             <label for="type" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Typ av resa</label>
@@ -441,8 +535,8 @@
       <!-- Exportsektion -->
       <section class="bg-white dark:bg-[#232f42] rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-[#334155] shadow-sm space-y-4">
         <div>
-          <h2 class="text-base font-bold text-slate-900 dark:text-white">Exportera till Excel (.xlsx)</h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Inkluderar komplett reselista samt sammanställning av tjänste- och privatresor.</p>
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">Exportera &amp; Importera Excel (.xlsx)</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Ladda ner komplett reselista eller läs in resor från en tidigare Excel-fil.</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -465,13 +559,24 @@
 
         <div id="export-toast-box" class="hidden rounded-xl p-3 text-xs font-medium border"></div>
 
-        <button type="button" onclick="exportExcel()"
-          class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 px-4 rounded-xl text-sm shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-          </svg>
-          Ladda ner Excel-fil (.xlsx)
-        </button>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <button type="button" onclick="exportExcel()"
+            class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 px-4 rounded-xl text-sm shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            Exportera (.xlsx)
+          </button>
+
+          <button type="button" onclick="triggerExcelImport()"
+            class="w-full bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] hover:border-accent text-slate-800 dark:text-slate-100 font-semibold py-3 px-4 rounded-xl text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer">
+            <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+            </svg>
+            Importera (.xlsx)
+          </button>
+          <input type="file" id="import-excel-input" accept=".xlsx,.xls,.csv" class="hidden" onchange="handleExcelImport(event)">
+        </div>
       </section>
 
       <!-- Meddelande- och bekräftelseruta (placerad direkt ovanför registrerade resor) -->
@@ -537,6 +642,7 @@
     let favorites = [];
     let purposeFavorites = [];
     let editingTripId = null;
+    let pendingDeleteTripId = null;
 
     // Ladda sparad data
     function loadData() {
@@ -579,6 +685,208 @@
       const modal = document.getElementById('settings-modal');
       if (!modal) return;
       modal.classList.toggle('hidden', !show);
+    }
+
+    // Favoriter-modal (Lägg till, redigera och ta bort)
+    let editingFavPlaceIdx = null;
+    let editingFavPurposeIdx = null;
+
+    function toggleFavoritesModal(show) {
+      const modal = document.getElementById('favorites-modal');
+      if (!modal) return;
+      if (show) {
+        editingFavPlaceIdx = null;
+        editingFavPurposeIdx = null;
+        renderManageFavorites();
+      }
+      modal.classList.toggle('hidden', !show);
+    }
+
+    function renderManageFavorites() {
+      const placesEl = document.getElementById('manage-fav-places');
+      const purposesEl = document.getElementById('manage-fav-purposes');
+
+      if (placesEl) {
+        if (favorites.length === 0) {
+          placesEl.innerHTML = `<p class="text-[11px] text-slate-400 italic py-1">Inga favorit-orter sparade</p>`;
+        } else {
+          placesEl.innerHTML = favorites.map((fav, idx) => {
+            if (editingFavPlaceIdx === idx) {
+              return `
+                <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#161f2e] border border-accent p-1.5 rounded-lg">
+                  <input type="text" id="edit-fav-place-input-${idx}" value="${escapeHtml(fav)}"
+                    onkeydown="if(event.key === 'Enter'){ event.preventDefault(); saveEditedFavoritePlace(${idx}); } else if(event.key === 'Escape'){ cancelEditFavoritePlace(); }"
+                    class="flex-1 bg-white dark:bg-[#232f42] border border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-white px-2 py-1 rounded text-xs font-medium focus:outline-none focus:border-accent">
+                  <button type="button" onclick="saveEditedFavoritePlace(${idx})" title="Spara"
+                    class="px-2 py-1 rounded bg-accent text-white text-[11px] font-semibold cursor-pointer">
+                    Spara
+                  </button>
+                  <button type="button" onclick="cancelEditFavoritePlace()" title="Avbryt"
+                    class="px-1.5 py-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs cursor-pointer">
+                    ✕
+                  </button>
+                </div>
+              `;
+            }
+            return `
+              <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-[#161f2e] border border-slate-200 dark:border-[#3e4c63] px-2.5 py-1.5 rounded-lg">
+                <span class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">${escapeHtml(fav)}</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button type="button" onclick="startEditFavoritePlace(${idx})" title="Redigera ${escapeHtml(fav)}"
+                    class="text-[11px] font-semibold text-accent hover:underline cursor-pointer">
+                    Ändra
+                  </button>
+                  <button type="button" onclick="removeFavoritePlace(${idx})" title="Ta bort ${escapeHtml(fav)}"
+                    class="text-slate-400 hover:text-red-500 dark:hover:text-red-400 text-xs font-bold cursor-pointer">
+                    ✕
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      if (purposesEl) {
+        if (purposeFavorites.length === 0) {
+          purposesEl.innerHTML = `<p class="text-[11px] text-slate-400 italic py-1">Inga favorit-ändamål sparade</p>`;
+        } else {
+          purposesEl.innerHTML = purposeFavorites.map((fav, idx) => {
+            if (editingFavPurposeIdx === idx) {
+              return `
+                <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#161f2e] border border-accent p-1.5 rounded-lg">
+                  <input type="text" id="edit-fav-purpose-input-${idx}" value="${escapeHtml(fav)}"
+                    onkeydown="if(event.key === 'Enter'){ event.preventDefault(); saveEditedFavoritePurpose(${idx}); } else if(event.key === 'Escape'){ cancelEditFavoritePurpose(); }"
+                    class="flex-1 bg-white dark:bg-[#232f42] border border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-white px-2 py-1 rounded text-xs font-medium focus:outline-none focus:border-accent">
+                  <button type="button" onclick="saveEditedFavoritePurpose(${idx})" title="Spara"
+                    class="px-2 py-1 rounded bg-accent text-white text-[11px] font-semibold cursor-pointer">
+                    Spara
+                  </button>
+                  <button type="button" onclick="cancelEditFavoritePurpose()" title="Avbryt"
+                    class="px-1.5 py-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs cursor-pointer">
+                    ✕
+                  </button>
+                </div>
+              `;
+            }
+            return `
+              <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-[#161f2e] border border-slate-200 dark:border-[#3e4c63] px-2.5 py-1.5 rounded-lg">
+                <span class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">${escapeHtml(fav)}</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button type="button" onclick="startEditFavoritePurpose(${idx})" title="Redigera ${escapeHtml(fav)}"
+                    class="text-[11px] font-semibold text-accent hover:underline cursor-pointer">
+                    Ändra
+                  </button>
+                  <button type="button" onclick="removeFavoritePurpose(${idx})" title="Ta bort ${escapeHtml(fav)}"
+                    class="text-slate-400 hover:text-red-500 dark:hover:text-red-400 text-xs font-bold cursor-pointer">
+                    ✕
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    function addFavoritePlaceFromModal() {
+      const input = document.getElementById('new-fav-place-input');
+      const val = (input.value || '').trim();
+      if (!val) return;
+      if (!favorites.includes(val)) {
+        favorites.push(val);
+        saveFavorites();
+        renderFavoriteDropdowns();
+      }
+      input.value = '';
+      renderManageFavorites();
+    }
+
+    function startEditFavoritePlace(idx) {
+      editingFavPlaceIdx = idx;
+      renderManageFavorites();
+      const input = document.getElementById(`edit-fav-place-input-${idx}`);
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+
+    function cancelEditFavoritePlace() {
+      editingFavPlaceIdx = null;
+      renderManageFavorites();
+    }
+
+    function saveEditedFavoritePlace(idx) {
+      const input = document.getElementById(`edit-fav-place-input-${idx}`);
+      if (!input) return;
+      const newVal = (input.value || '').trim();
+      if (newVal) {
+        favorites[idx] = newVal;
+        saveFavorites();
+        renderFavoriteDropdowns();
+      }
+      editingFavPlaceIdx = null;
+      renderManageFavorites();
+    }
+
+    function addFavoritePurposeFromModal() {
+      const input = document.getElementById('new-fav-purpose-input');
+      const val = (input.value || '').trim();
+      if (!val) return;
+      if (!purposeFavorites.includes(val)) {
+        purposeFavorites.push(val);
+        savePurposeFavorites();
+        renderPurposeFavoriteDropdown();
+      }
+      input.value = '';
+      renderManageFavorites();
+    }
+
+    function startEditFavoritePurpose(idx) {
+      editingFavPurposeIdx = idx;
+      renderManageFavorites();
+      const input = document.getElementById(`edit-fav-purpose-input-${idx}`);
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+
+    function cancelEditFavoritePurpose() {
+      editingFavPurposeIdx = null;
+      renderManageFavorites();
+    }
+
+    function saveEditedFavoritePurpose(idx) {
+      const input = document.getElementById(`edit-fav-purpose-input-${idx}`);
+      if (!input) return;
+      const newVal = (input.value || '').trim();
+      if (newVal) {
+        purposeFavorites[idx] = newVal;
+        savePurposeFavorites();
+        renderPurposeFavoriteDropdown();
+      }
+      editingFavPurposeIdx = null;
+      renderManageFavorites();
+    }
+
+    function removeFavoritePlace(index) {
+      if (index < 0 || index >= favorites.length) return;
+      favorites.splice(index, 1);
+      if (editingFavPlaceIdx === index) editingFavPlaceIdx = null;
+      saveFavorites();
+      renderFavoriteDropdowns();
+      renderManageFavorites();
+    }
+
+    function removeFavoritePurpose(index) {
+      if (index < 0 || index >= purposeFavorites.length) return;
+      purposeFavorites.splice(index, 1);
+      if (editingFavPurposeIdx === index) editingFavPurposeIdx = null;
+      savePurposeFavorites();
+      renderPurposeFavoriteDropdown();
+      renderManageFavorites();
     }
 
     function saveRegNr(val) {
@@ -926,8 +1234,10 @@
       if (editingTripId) {
         const index = trips.findIndex(t => t.id === editingTripId);
         if (index !== -1) {
+          const editedDate = document.getElementById('edit-date').value || trips[index].date;
           trips[index] = {
             ...trips[index],
+            date: editedDate,
             type,
             startAddr,
             viaAddr,
@@ -975,9 +1285,14 @@
 
       editingTripId = id;
       switchTab('register');
-      document.getElementById('form-title').textContent = `Redigera resa (${trip.date})`;
+      document.getElementById('form-title').textContent = 'Redigera resa';
       document.getElementById('submit-btn').textContent = 'Uppdatera resa';
       document.getElementById('cancel-edit-btn').classList.remove('hidden');
+
+      const editDateWrapper = document.getElementById('edit-date-wrapper');
+      const editDateInput = document.getElementById('edit-date');
+      editDateWrapper.classList.remove('hidden');
+      editDateInput.value = trip.date || new Date().toISOString().split('T')[0];
 
       document.getElementById('type').value = trip.type;
       handleTripTypeChange();
@@ -990,6 +1305,7 @@
       } else {
         toggleViaField(false);
       }
+
       document.getElementById('odo-start').value = trip.odoStart;
       document.getElementById('odo-end').value = trip.odoEnd;
       document.getElementById('purpose').value = trip.purpose || '';
@@ -998,13 +1314,14 @@
       document.getElementById('form-section').scrollIntoView({ behavior: 'smooth' });
     }
 
-    function cancelEdit(resetFields = true) {
+    function cancelEdit(resetForm = true) {
       editingTripId = null;
       document.getElementById('form-title').textContent = 'Registrera resa';
       document.getElementById('submit-btn').textContent = 'Spara resa';
       document.getElementById('cancel-edit-btn').classList.add('hidden');
+      document.getElementById('edit-date-wrapper').classList.add('hidden');
 
-      if (resetFields) {
+      if (resetForm) {
         document.getElementById('trip-form').reset();
         document.getElementById('type').value = 'Tjänst';
         handleTripTypeChange();
@@ -1013,8 +1330,37 @@
       }
     }
 
-    // Ta bort resa
-    function deleteTrip(id) {
+    // Ta bort resa med bekräftelsedialog
+    function askDeleteTrip(id) {
+      const trip = trips.find(t => t.id === id);
+      if (!trip) return;
+
+      pendingDeleteTripId = id;
+      const dist = Math.max(0, (Number(trip.odoEnd) || 0) - (Number(trip.odoStart) || 0));
+      const routeText = trip.type === 'Tjänst' && (trip.startAddr || trip.endAddr)
+        ? `${trip.startAddr || '—'} → ${trip.endAddr || '—'}`
+        : 'Privatkörning';
+
+      const descEl = document.getElementById('delete-modal-desc');
+      if (descEl) {
+        descEl.textContent = `Vill du ta bort resan från ${trip.date} (${routeText}, ${dist.toLocaleString('sv-SE')} km)?`;
+      }
+
+      const modal = document.getElementById('delete-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+      pendingDeleteTripId = null;
+      const modal = document.getElementById('delete-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function confirmDeleteTrip() {
+      if (!pendingDeleteTripId) return;
+      const id = pendingDeleteTripId;
+      closeDeleteModal();
+
       if (editingTripId === id) {
         cancelEdit();
       }
@@ -1102,7 +1448,7 @@
                   class="font-semibold text-accent hover:underline cursor-pointer">
                   Redigera
                 </button>
-                <button type="button" onclick="deleteTrip('${trip.id}')"
+                <button type="button" onclick="askDeleteTrip('${trip.id}')"
                   class="font-semibold text-red-500 hover:text-red-600 dark:text-red-400 hover:underline cursor-pointer">
                   Ta bort
                 </button>
@@ -1352,6 +1698,161 @@
       showMessage(`Excel-filen "${fileName}" har laddats ner!`, 'success', 'export-toast-box');
     }
 
+    // Importlogik från Excel (.xlsx / .xls / .csv)
+    function triggerExcelImport() {
+      const input = document.getElementById('import-excel-input');
+      if (input) {
+        input.value = '';
+        input.click();
+      }
+    }
+
+    function normalizeExcelDate(rawVal) {
+      if (!rawVal) return '';
+      if (typeof rawVal === 'number') {
+        // Excel-datumserienummer -> YYYY-MM-DD
+        const utcDays = Math.floor(rawVal - 25569);
+        const dateObj = new Date(utcDays * 86400 * 1000);
+        if (!isNaN(dateObj.getTime())) {
+          return dateObj.toISOString().split('T')[0];
+        }
+      }
+      const str = String(rawVal).trim();
+      if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+        return str.slice(0, 10);
+      }
+      const slashMatch = str.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
+      if (slashMatch) {
+        const [, d, m, y] = slashMatch;
+        return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+      }
+      return '';
+    }
+
+    function getRowValueByKeys(row, candidates) {
+      const keys = Object.keys(row);
+      for (const candidate of candidates) {
+        const foundKey = keys.find(k => k.trim().toLowerCase() === candidate.toLowerCase());
+        if (foundKey !== undefined && row[foundKey] !== '' && row[foundKey] !== null && row[foundKey] !== undefined) {
+          return row[foundKey];
+        }
+      }
+      return '';
+    }
+
+    function handleExcelImport(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      if (typeof XLSX === 'undefined') {
+        showMessage('Excel-biblioteket kunde inte laddas. Kontrollera internetanslutningen.', 'error', 'export-toast-box');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+
+          // Välj bladet "Körjournal" om det finns, annars första bladet
+          const sheetName = workbook.SheetNames.find(n => n.toLowerCase() === 'körjournal') || workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+          if (!rawRows || rawRows.length === 0) {
+            showMessage('Filen verkar vara tom eller saknar rader med resor.', 'error', 'export-toast-box');
+            return;
+          }
+
+          let importedCount = 0;
+          let skippedCount = 0;
+
+          rawRows.forEach((row, idx) => {
+            const rawDate = getRowValueByKeys(row, ['Datum', 'Date']);
+            const date = normalizeExcelDate(rawDate);
+
+            const rawType = String(getRowValueByKeys(row, ['Typ', 'Type', 'Kategori']) || 'Tjänst').trim();
+            const isPrivate = rawType.toLowerCase().startsWith('privat');
+            const type = isPrivate ? 'Privat' : 'Tjänst';
+
+            const startAddr = isPrivate ? '' : String(getRowValueByKeys(row, ['Startadress', 'Från', 'Start', 'Startort'])).trim();
+            const viaAddr = isPrivate ? '' : String(getRowValueByKeys(row, ['Via', 'Via-adress', 'Mellanstopp'])).trim();
+            const endAddr = isPrivate ? '' : String(getRowValueByKeys(row, ['Slutadress', 'Till', 'Slut', 'Slutort'])).trim();
+
+            const odoStartRaw = parseFloat(String(getRowValueByKeys(row, ['Startmätare (km)', 'Startmätare', 'Mätarställning start'])).replace(/\s+/g, '').replace(',', '.'));
+            let odoEndRaw = parseFloat(String(getRowValueByKeys(row, ['Slutmätare (km)', 'Slutmätare', 'Mätarställning slut'])).replace(/\s+/g, '').replace(',', '.'));
+            const distRaw = parseFloat(String(getRowValueByKeys(row, ['Sträcka (km)', 'Sträcka', 'Km'])).replace(/\s+/g, '').replace(',', '.'));
+
+            if (isNaN(odoEndRaw) && !isNaN(odoStartRaw) && !isNaN(distRaw)) {
+              odoEndRaw = odoStartRaw + distRaw;
+            }
+
+            if (!date || isNaN(odoStartRaw) || isNaN(odoEndRaw) || odoEndRaw <= odoStartRaw) {
+              skippedCount++;
+              return;
+            }
+
+            // Undvik dubbletter (samma datum + samma start- och slutmätare)
+            const alreadyExists = trips.some(t =>
+              t.date === date &&
+              Number(t.odoStart) === odoStartRaw &&
+              Number(t.odoEnd) === odoEndRaw
+            );
+
+            if (alreadyExists) {
+              skippedCount++;
+              return;
+            }
+
+            const rawPurpose = String(getRowValueByKeys(row, ['Ändamål', 'Anteckning', 'Syfte', 'Kommentar'])).trim();
+            const purpose = isPrivate ? 'Privatresa' : (rawPurpose || 'Tjänsteresa');
+
+            trips.push({
+              id: `trip-imp-${Date.now()}-${idx}`,
+              date,
+              type,
+              startAddr,
+              viaAddr,
+              endAddr,
+              odoStart: odoStartRaw,
+              odoEnd: odoEndRaw,
+              purpose
+            });
+            importedCount++;
+          });
+
+          // Läs även in Reg-nr från Sammanställning om det saknas lokalt
+          const summarySheetName = workbook.SheetNames.find(n => n.toLowerCase() === 'sammanställning');
+          if (summarySheetName && !localStorage.getItem(REG_NR_KEY)) {
+            const summaryRows = XLSX.utils.sheet_to_json(workbook.Sheets[summarySheetName], { defval: '' });
+            const regRow = summaryRows.find(r => String(r['Rubrik'] || '').toLowerCase().includes('reg-nr'));
+            if (regRow && regRow['Värde'] && regRow['Värde'] !== 'Ej angivet') {
+              saveRegNr(String(regRow['Värde']));
+              const regInput = document.getElementById('reg-nr-input');
+              if (regInput) regInput.value = String(regRow['Värde']).toUpperCase();
+            }
+          }
+
+          if (importedCount > 0) {
+            saveTrips();
+            populateChartYears();
+            renderMonthlyOverview();
+            renderTrips();
+            suggestNextOdometer();
+
+            const skipNote = skippedCount > 0 ? ` (${skippedCount} dubbletter/ogiltiga rader hoppades över)` : '';
+            showMessage(`${importedCount} resor importerades från Excel!${skipNote}`, 'success', 'export-toast-box');
+          } else {
+            showMessage('Inga nya resor importerades (alla rader fanns redan eller saknade giltig mätarställning).', 'info', 'export-toast-box');
+          }
+        } catch (err) {
+          showMessage('Kunde inte läsa Excel-filen. Kontrollera att det är en giltig .xlsx-fil.', 'error', 'export-toast-box');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
     function escapeHtml(str) {
       return String(str || '')
         .replace(/&/g, '&amp;')
@@ -1369,12 +1870,77 @@
       renderPurposeFavoriteDropdown();
       suggestNextOdometer();
       renderTrips();
+      setupShortWordAutoCaps();
 
       const now = new Date();
       const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       const exportMonthEl = document.getElementById('export-month');
       if (exportMonthEl) exportMonthEl.value = currentMonth;
     });
+
+    // Ändra fristående 2- och 3-bokstavsord till versaler (t.ex. "ab" -> "AB", "ica" -> "ICA", "kth" -> "KTH")
+    function setupShortWordAutoCaps() {
+      const commonShortWords = new Set([
+        // 2 bokstäver
+        'av', 'de', 'du', 'då', 'en', 'er', 'et', 'få', 'gå', 'ha', 'vi', 'ni',
+        'om', 'på', 'se', 'so', 'så', 'ta', 'ut', 'åt', 'är', 'år', 'ju', 'nu',
+        'ej', 'ja', 'jo', 'mä', 'ny', 'ty', 'ur', 'va', 'öa', 'bo', 'ge', 'le',
+        'må', 'ro', 'sy', 'by', 'hö', 'kö', 'mö', 'öar',
+        // 3 bokstäver (vanliga småord, verb & substantiv som inte är förkortningar)
+        'och', 'att', 'det', 'som', 'för', 'med', 'den', 'har', 'kan', 'ska',
+        'var', 'vid', 'mot', 'hos', 'när', 'hur', 'vad', 'vem', 'man', 'sig',
+        'sin', 'din', 'min', 'vår', 'ert', 'oss', 'dem', 'hon', 'han', 'ett',
+        'tre', 'två', 'sju', 'nio', 'tio', 'bra', 'nya', 'nye', 'låg', 'hög',
+        'hem', 'bil', 'väg', 'hus', 'dag', 'tid', 'del', 'par', 'typ', 'fel',
+        'ort', 'bro', 'sjö', 'öst', 'mat', 'bak', 'fram', 'hit', 'dit', 'här',
+        'där', 'mer', 'mst', 'nog', 'väl', 'sen', 'sed', 'får', 'går', 'ser',
+        'tar', 'ger', 'bor', 'dör', 'ler', 'mår', 'ror', 'syr', 'sår', 'vill',
+        'fick', 'gick', 'kom', 'tog', 'såg', 'gav', 'blev', 'bli', 'blir',
+        'alla', 'allt', 'inga', 'inget', 'ena', 'ene', 'vis', 'sätt', 'mål',
+        'tur', 'mil', 'rum', 'sal', 'tak', 'golv', 'dörr', 'port', 'plan',
+        'kaj', 'hamn', 'berg', 'dal', 'äng', 'skogs', 'skog', 'fält', 'park',
+        'tåg', 'buss', 'båt', 'flyg', 'post', 'bank', 'vård', 'tand', 'läk',
+        'barn', 'hund', 'katt', 'fika', 'kaffe', 'lunch', 'middag', 'möte'
+      ]);
+
+      const formatShortWords = (text) => {
+        // Matcha 2 eller 3 bokstäver som är avslutade med mellanslag/skiljetecken eller vid slutet av strängen
+        return text.replace(/(^|[\s,./()-])([a-zåäö]{2,3})(?=[\s,./()-]|$)/gi, (match, prefix, word, offset, fullStr) => {
+          // Vänta med att omvandla om användaren precis skrivit bokstav nr 2 eller 3 längst bak utan mellanslag
+          if (offset + prefix.length + word.length === fullStr.length && document.activeElement?.value === fullStr) {
+            return match;
+          }
+          if (commonShortWords.has(word.toLowerCase())) {
+            return match;
+          }
+          return prefix + word.toUpperCase();
+        });
+      };
+
+      const targetIds = ['start-addr', 'end-addr', 'via-addr', 'purpose'];
+      targetIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener('input', () => {
+          const start = el.selectionStart;
+          const end = el.selectionEnd;
+          const updated = formatShortWords(el.value);
+          if (updated !== el.value) {
+            el.value = updated;
+            el.setSelectionRange(start, end);
+          }
+        });
+
+        el.addEventListener('blur', () => {
+          // Kör även vid utgång ur fältet så t.ex. "Möte på kth" i slutet av raden blir "Möte på KTH"
+          el.value = el.value.replace(/(^|[\s,./()-])([a-zåäö]{2,3})(?=[\s,./()-]|$)/gi, (match, prefix, word) => {
+            if (commonShortWords.has(word.toLowerCase())) return match;
+            return prefix + word.toUpperCase();
+          });
+        });
+      });
+    }
   </script>
 </body>
 </html>
