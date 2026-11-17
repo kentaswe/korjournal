@@ -2,183 +2,291 @@
 <html lang="sv" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Körjournal</title>
 
-  <!-- PWA-metadata och relativa sökvägar för GitHub Pages -->
+  <!-- PWA & Mobilanpassning -->
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
   <link rel="apple-touch-icon" href="./icon.svg">
-  <meta id="meta-theme-color" name="theme-color" content="#1e293b">
+  <meta name="theme-color" content="#1e293b">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Körjournal">
 
-  <!-- Google Font: Inter -->
+  <!-- Typsnitt: Plus Jakarta Sans, Inter, Outfit, Space Grotesk & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- SheetJS för äkta .xlsx-export -->
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            accent: 'var(--accent)',
+            'accent-hover': 'var(--accent-hover)',
+            'accent-soft': 'var(--accent-soft)',
           }
         }
       }
-    };
+    }
   </script>
 
-  <!-- Dynamiska CSS-variabler för valbar accentfärg -->
+  <!-- SheetJS för äkta .xlsx-export -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
   <style>
     :root {
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --accent-soft: rgba(59, 130, 246, 0.15);
-      --accent-border: rgba(59, 130, 246, 0.35);
+      --accent: #f97316;
+      --accent-hover: #ea580c;
+      --accent-soft: rgba(249, 115, 22, 0.14);
+      --app-font: 'Plus Jakarta Sans', sans-serif;
+      --bg-page: #f1f5f9;
     }
 
-    .bg-accent { background-color: var(--accent); }
-    .hover\:bg-accent-hover:hover { background-color: var(--accent-hover); }
-    .text-accent { color: var(--accent); }
-    .bg-accent-soft { background-color: var(--accent-soft); }
-    .border-accent { border-color: var(--accent-border); }
-    .focus\:border-accent:focus { border-color: var(--accent); }
+    html.dark {
+      --bg-page: #182232;
+    }
+
+    body {
+      font-family: var(--app-font);
+      background-color: var(--bg-page);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Dölj pilknappar i sifferfält för renare mobilvy */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-[#1e293b] dark:text-slate-50 font-sans antialiased min-h-screen p-4 pb-20 transition-colors duration-200">
+<body class="text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200 pb-12">
 
-  <div class="max-w-2xl mx-auto">
-    <!-- Header med titel, färgväljare, tema-växlare och PWA-status -->
-    <header class="pb-4 mb-4 border-b border-slate-200 dark:border-[#3e4c63]">
-      <div class="flex flex-wrap justify-between items-center gap-3">
-        <div class="flex items-center gap-2.5">
-          <div class="bg-accent-soft border border-accent p-2.5 rounded-xl text-accent transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/>
-              <circle cx="7" cy="17" r="2"/>
-              <path d="M9 17h6"/>
-              <circle cx="17" cy="17" r="2"/>
-            </svg>
-          </div>
-          <div>
-            <h1 class="text-xl font-bold tracking-tight">Körjournal</h1>
-            <p class="text-xs text-slate-500 dark:text-slate-300">Lokal lagring &amp; Excel-export</p>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-2">
-          <!-- Färgväljare med 5 accentfärger -->
-          <div class="flex items-center gap-1.5 bg-white dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] px-2.5 py-2 rounded-xl shadow-sm" title="Välj accentfärg">
-            <button type="button" onclick="setAccent('blue')" data-color="blue" aria-label="Blå"
-              class="color-dot w-4 h-4 rounded-full bg-[#3b82f6] transition-transform hover:scale-110 cursor-pointer ring-offset-2 dark:ring-offset-[#293548]"></button>
-            <button type="button" onclick="setAccent('emerald')" data-color="emerald" aria-label="Grön"
-              class="color-dot w-4 h-4 rounded-full bg-[#10b981] transition-transform hover:scale-110 cursor-pointer ring-offset-2 dark:ring-offset-[#293548]"></button>
-            <button type="button" onclick="setAccent('orange')" data-color="orange" aria-label="Orange"
-              class="color-dot w-4 h-4 rounded-full bg-[#f97316] transition-transform hover:scale-110 cursor-pointer ring-offset-2 dark:ring-offset-[#293548]"></button>
-            <button type="button" onclick="setAccent('violet')" data-color="violet" aria-label="Lila"
-              class="color-dot w-4 h-4 rounded-full bg-[#8b5cf6] transition-transform hover:scale-110 cursor-pointer ring-offset-2 dark:ring-offset-[#293548]"></button>
-            <button type="button" onclick="setAccent('rose')" data-color="rose" aria-label="Röd"
-              class="color-dot w-4 h-4 rounded-full bg-[#ef4444] transition-transform hover:scale-110 cursor-pointer ring-offset-2 dark:ring-offset-[#293548]"></button>
-          </div>
-
-          <!-- Knapp för att växla mellan ljust och mörkt läge -->
-          <button type="button" onclick="toggleTheme()" id="theme-toggle" title="Växla ljust/mörkt läge" aria-label="Växla ljust eller mörkt läge"
-            class="bg-white dark:bg-[#293548] hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-[#3e4c63] text-slate-700 dark:text-slate-200 p-2 rounded-xl shadow-sm transition-colors cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 hidden dark:block text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 block dark:hidden text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-            </svg>
-          </button>
-
-          <!-- Offline-status -->
-          <span id="offline-status" class="hidden sm:flex text-xs font-medium bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 px-2.5 py-2 rounded-xl border border-emerald-500/30 items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400"></span>
-            Offline-redo
-          </span>
+  <!-- Toppmeny -->
+  <header class="sticky top-0 z-30 bg-white/90 dark:bg-[#1e293b]/90 backdrop-blur-md border-b border-slate-200 dark:border-[#334155]">
+    <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <img src="./icon.svg" alt="Körjournal" class="w-9 h-9 rounded-xl shadow-sm"
+             onerror="this.src='https://placehold.co/36x36/f97316/ffffff?text=KJ'">
+        <div>
+          <h1 class="text-base font-bold tracking-tight leading-tight">Körjournal</h1>
+          <p id="header-subtitle" class="text-[11px] text-slate-500 dark:text-slate-400">Lokal &amp; privat logg</p>
         </div>
       </div>
-    </header>
 
-    <!-- Fliknavigering (Körjournal / Exportera) -->
-    <nav class="grid grid-cols-2 gap-1.5 bg-white dark:bg-[#293548] p-1.5 rounded-xl border border-slate-200 dark:border-[#3e4c63] mb-5 shadow-sm" role="tablist">
-      <button type="button" id="tab-btn-journal" onclick="switchTab('journal')" role="tab" aria-selected="true"
-        class="tab-btn bg-accent text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-colors cursor-pointer">
-        Körjournal
+      <!-- Inställningsknapp -->
+      <button type="button" onclick="toggleSettingsModal(true)" title="Inställningar" aria-label="Inställningar"
+        class="p-2.5 rounded-xl bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] text-slate-700 dark:text-slate-200 hover:border-accent transition-colors cursor-pointer flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+        <span class="text-xs font-semibold hidden sm:inline">Inställningar</span>
       </button>
-      <button type="button" id="tab-btn-export" onclick="switchTab('export')" role="tab" aria-selected="false"
-        class="tab-btn text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-colors cursor-pointer">
-        Exportera
+    </div>
+
+    <!-- Fliknavigering -->
+    <div class="max-w-2xl mx-auto px-4 pb-2.5">
+      <div class="grid grid-cols-2 gap-1.5 bg-slate-100 dark:bg-[#182232] p-1 rounded-xl border border-slate-200 dark:border-[#334155]">
+        <button type="button" id="tab-register" onclick="switchTab('register')"
+          class="py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm">
+          Registrera
+        </button>
+        <button type="button" id="tab-export" onclick="switchTab('export')"
+          class="py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+          Översikt &amp; Export
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Inställningsmodal -->
+  <div id="settings-modal" onclick="if(event.target === this) toggleSettingsModal(false)"
+    class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-[#232f42] border border-slate-200 dark:border-[#334155] rounded-2xl w-full max-w-sm p-5 shadow-xl space-y-5">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-slate-900 dark:text-white">Inställningar</h2>
+        <button type="button" onclick="toggleSettingsModal(false)" aria-label="Stäng"
+          class="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-[#2f3d54] cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Registreringsnummer -->
+      <div>
+        <label for="reg-nr-input" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">
+          Registreringsnummer (Reg-nr)
+        </label>
+        <input type="text" id="reg-nr-input" maxlength="12" placeholder="T.ex. ABC 123"
+          oninput="saveRegNr(this.value)"
+          class="w-full bg-slate-50 dark:bg-[#1b2536] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-white px-3 py-2.5 rounded-xl text-sm font-bold uppercase tracking-wider focus:outline-none focus:border-accent transition-colors">
+      </div>
+
+      <!-- Mörkt / Ljust läge -->
+      <div class="flex items-center justify-between gap-3 pt-1 border-t border-slate-100 dark:border-[#334155]">
+        <div>
+          <p class="text-xs font-semibold text-slate-800 dark:text-slate-200">Utseende</p>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">Växla mellan mörkt och ljust läge</p>
+        </div>
+        <button type="button" onclick="toggleTheme()" id="theme-toggle-btn"
+          class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] text-slate-700 dark:text-slate-200 hover:border-accent transition-colors cursor-pointer flex items-center gap-2 text-xs font-semibold">
+          <svg id="icon-sun" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
+          <svg id="icon-moon" class="w-4 h-4 block dark:hidden text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+          <span class="dark:hidden">Mörkt läge</span>
+          <span class="hidden dark:inline">Ljust läge</span>
+        </button>
+      </div>
+
+      <!-- Accentfärg -->
+      <div class="pt-1 border-t border-slate-100 dark:border-[#334155]">
+        <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-2">Accentfärg</p>
+        <div class="grid grid-cols-4 gap-2">
+          <button type="button" onclick="setAccentColor('#f97316', '#ea580c', 'rgba(249,115,22,0.15)')" aria-label="Orange"
+            class="flex flex-col items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-[#1b2536] border border-slate-200 dark:border-[#3e4c63] cursor-pointer color-dot" data-color="#f97316">
+            <span class="w-5 h-5 rounded-full bg-[#f97316]"></span>
+            <span class="text-[10px] font-medium text-slate-600 dark:text-slate-300">Orange</span>
+          </button>
+          <button type="button" onclick="setAccentColor('#3b82f6', '#2563eb', 'rgba(59,130,246,0.15)')" aria-label="Blå"
+            class="flex flex-col items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-[#1b2536] border border-slate-200 dark:border-[#3e4c63] cursor-pointer color-dot" data-color="#3b82f6">
+            <span class="w-5 h-5 rounded-full bg-[#3b82f6]"></span>
+            <span class="text-[10px] font-medium text-slate-600 dark:text-slate-300">Blå</span>
+          </button>
+          <button type="button" onclick="setAccentColor('#10b981', '#059669', 'rgba(16,185,129,0.15)')" aria-label="Grön"
+            class="flex flex-col items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-[#1b2536] border border-slate-200 dark:border-[#3e4c63] cursor-pointer color-dot" data-color="#10b981">
+            <span class="w-5 h-5 rounded-full bg-[#10b981]"></span>
+            <span class="text-[10px] font-medium text-slate-600 dark:text-slate-300">Grön</span>
+          </button>
+          <button type="button" onclick="setAccentColor('#8b5cf6', '#7c3aed', 'rgba(139,92,246,0.15)')" aria-label="Lila"
+            class="flex flex-col items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-[#1b2536] border border-slate-200 dark:border-[#3e4c63] cursor-pointer color-dot" data-color="#8b5cf6">
+            <span class="w-5 h-5 rounded-full bg-[#8b5cf6]"></span>
+            <span class="text-[10px] font-medium text-slate-600 dark:text-slate-300">Lila</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bakgrundsfärg -->
+      <div class="pt-1 border-t border-slate-100 dark:border-[#334155]">
+        <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-2">Bakgrund</p>
+        <div class="grid grid-cols-4 gap-2">
+          <button type="button" onclick="setBgTone('slate')" aria-label="Skiffer"
+            class="flex flex-col items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-[#1b2536] border border-slate-200 dark:border-[#3e4c63] cursor-pointer bg-dot" data-bg="slate">
+            <span class="w-5 h-5 rounded-full bg-slate-200 dark:bg-[#182232] border border-slate-400/50"></span>
+            <span class="text-[10px] font-medium text-slate-600 dark:text-slate-300">Skiffer</span>
+          </button>
+          <button type="button" onclick="setBgTone('midnight')" aria-label="Midnatt"
+            class="flex flex-col items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-[#1b2536] border border-slate-200 dark:border-[#3e4c63] cursor-pointer bg-dot" data-bg="midnight">
+            <span class="w-5 h-5 rounded-full bg-zinc-200 dark:bg-[#0f172a] border border-slate-400/50"></span>
+            <span class="text-[10px] font-medium text-slate-600 dark:text-slate-300">Midnatt</span>
+          </button>
+          <button type="button" onclick="setBgTone('warm')" aria-label="Varm"
+            class="flex flex-col items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-[#1b2536] border border-slate-200 dark:border-[#3e4c63] cursor-pointer bg-dot" data-bg="warm">
+            <span class="w-5 h-5 rounded-full bg-stone-200 dark:bg-[#1f1d1b] border border-stone-400/50"></span>
+            <span class="text-[10px] font-medium text-slate-600 dark:text-slate-300">Varm</span>
+          </button>
+          <button type="button" onclick="setBgTone('forest')" aria-label="Skog"
+            class="flex flex-col items-center gap-1.5 p-2 rounded-xl bg-slate-50 dark:bg-[#1b2536] border border-slate-200 dark:border-[#3e4c63] cursor-pointer bg-dot" data-bg="forest">
+            <span class="w-5 h-5 rounded-full bg-emerald-100 dark:bg-[#13221f] border border-emerald-500/50"></span>
+            <span class="text-[10px] font-medium text-slate-600 dark:text-slate-300">Skog</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Typsnittsväljare -->
+      <div class="pt-1 border-t border-slate-100 dark:border-[#334155]">
+        <label for="font-select" class="block text-xs font-semibold text-slate-800 dark:text-slate-200 mb-1.5">
+          Typsnitt
+        </label>
+        <select id="font-select" onchange="setAppFont(this.value)"
+          class="w-full bg-slate-50 dark:bg-[#1b2536] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-white px-3 py-2.5 rounded-xl text-xs font-semibold focus:outline-none focus:border-accent transition-colors cursor-pointer">
+          <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans (Mjuk &amp; modern)</option>
+          <option value="'Inter', sans-serif">Inter (Klassisk &amp; neutral)</option>
+          <option value="'Outfit', sans-serif">Outfit (Rund &amp; geometrisk)</option>
+          <option value="'Space Grotesk', sans-serif">Space Grotesk (Sportig &amp; teknisk)</option>
+          <option value="'JetBrains Mono', monospace">JetBrains Mono (Digital &amp; sifferfokus)</option>
+        </select>
+      </div>
+
+      <button type="button" onclick="toggleSettingsModal(false)"
+        class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-2.5 px-4 rounded-xl text-xs shadow-sm transition-colors cursor-pointer">
+        Klar
       </button>
-    </nav>
+    </div>
+  </div>
 
-    <!-- FLIK 1: KÖRJOURNAL -->
-    <main id="tab-journal" class="block">
-      <!-- Översiktskort (Totalt, Tjänst, Privat i km) -->
-      <section class="grid grid-cols-3 gap-2.5 sm:gap-3 mb-5">
-        <div class="bg-white dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] rounded-xl p-3.5 sm:p-4 text-center shadow-sm transition-colors">
-          <div id="stat-total" class="text-base sm:text-xl font-bold text-slate-900 dark:text-slate-50 tabular-nums">0 km</div>
-          <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider font-semibold mt-1">Totalt</div>
+  <main class="max-w-2xl mx-auto px-4 pt-5 space-y-5">
+
+    <!-- ==================== FLIK 1: REGISTRERA ==================== -->
+    <div id="view-register" class="space-y-5">
+
+      <!-- Formulärkort -->
+      <section id="form-section" class="bg-white dark:bg-[#232f42] rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-[#334155] shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h2 id="form-title" class="text-base font-bold text-slate-900 dark:text-white">Registrera resa</h2>
+          <button type="button" id="cancel-edit-btn" onclick="cancelEdit()"
+            class="hidden text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#2f3d54] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+            Avbryt redigering
+          </button>
         </div>
 
-        <div class="bg-white dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] rounded-xl p-3.5 sm:p-4 text-center shadow-sm transition-colors">
-          <div id="stat-work" class="text-base sm:text-xl font-bold text-accent tabular-nums">0 km</div>
-          <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider font-semibold mt-1">Tjänst</div>
-        </div>
-
-        <div class="bg-white dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] rounded-xl p-3.5 sm:p-4 text-center shadow-sm transition-colors">
-          <div id="stat-priv" class="text-base sm:text-xl font-bold text-amber-600 dark:text-amber-400 tabular-nums">0 km</div>
-          <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-300 uppercase tracking-wider font-semibold mt-1">Privat</div>
-        </div>
-      </section>
-
-      <!-- Formulär för att registrera eller redigera resa -->
-      <section id="form-section" class="bg-white dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] rounded-xl p-4 sm:p-5 mb-6 shadow-sm transition-colors">
-        <div class="flex justify-between items-center mb-4">
-          <h2 id="form-title" class="text-base font-semibold text-slate-900 dark:text-slate-100">Registrera resa</h2>
-          <span id="live-distance" class="text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-[#1e293b] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-[#3e4c63] tabular-nums">
-            Sträcka: 0 km
-          </span>
-        </div>
-
-        <form id="trip-form" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <div>
-            <label for="date" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Datum</label>
-            <input type="date" id="date" required
-              class="w-full bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
-          </div>
-
+        <form id="trip-form" class="space-y-4">
+          <!-- Typ av resa -->
           <div>
             <label for="type" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Typ av resa</label>
-            <select id="type" onchange="handleTripTypeChange()" required
-              class="w-full bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
+            <select id="type" onchange="handleTripTypeChange()"
+              class="w-full bg-slate-50 dark:bg-[#1b2536] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:border-accent transition-colors">
               <option value="Tjänst">Tjänsteresa</option>
               <option value="Privat">Privatresa</option>
             </select>
           </div>
 
-          <div>
-            <label for="odo-start" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Mätarställning start (km)</label>
-            <input type="number" id="odo-start" inputmode="numeric" min="0" placeholder="t.ex. 45333" required
-              class="w-full bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm tabular-nums focus:outline-none focus:border-accent transition-colors">
-          </div>
+          <!-- Fokuserad sektion för mätarställning -->
+          <div class="relative bg-gradient-to-b from-accent-soft to-slate-50 dark:from-accent-soft dark:to-[#182232] border-2 border-accent border-l-[6px] rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-md ring-4 ring-accent/10">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-accent animate-pulse"></span>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-accent">Mätarställning (km)</span>
+              </div>
+              <span id="live-distance" class="text-xs sm:text-sm font-extrabold px-3 py-1 rounded-xl bg-accent text-white shadow-xs">
+                Sträcka: 0 km
+              </span>
+            </div>
 
-          <div>
-            <label for="odo-end" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Mätarställning slut (km)</label>
-            <input type="number" id="odo-end" inputmode="numeric" min="0" placeholder="t.ex. 45385" required
-              class="w-full bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm tabular-nums focus:outline-none focus:border-accent transition-colors">
+            <div class="grid grid-cols-2 gap-3.5">
+              <div>
+                <label for="odo-start" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">Start (km)</label>
+                <input type="number" id="odo-start" inputmode="numeric" required placeholder="45000"
+                  oninput="updateLiveDistance()"
+                  class="w-full bg-white dark:bg-[#243044] border-2 border-accent/60 focus:border-accent text-slate-900 dark:text-white px-3 py-3.5 rounded-xl text-xl sm:text-2xl font-extrabold tracking-tight text-center shadow-xs focus:outline-none focus:ring-4 focus:ring-accent/20 transition-all">
+              </div>
+
+              <div>
+                <label for="odo-end" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">Slut (km)</label>
+                <input type="number" id="odo-end" inputmode="numeric" required placeholder="45050"
+                  oninput="updateLiveDistance()"
+                  class="w-full bg-white dark:bg-[#243044] border-2 border-accent/60 focus:border-accent text-slate-900 dark:text-white px-3 py-3.5 rounded-xl text-xl sm:text-2xl font-extrabold tracking-tight text-center shadow-xs focus:outline-none focus:ring-4 focus:ring-accent/20 transition-all">
+              </div>
+            </div>
           </div>
 
           <!-- Adressfält och favorit-orter (döljs automatiskt vid privatresa) -->
-          <div id="address-fields-wrapper" class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div id="address-fields-wrapper" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <div class="flex justify-between items-center mb-1.5">
                 <label for="start-addr" class="block text-xs font-medium text-slate-600 dark:text-slate-300">Startadress / Ort</label>
@@ -188,7 +296,7 @@
                 </button>
               </div>
               <input type="text" id="start-addr" placeholder="Från" required
-                class="w-full bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
+                class="w-full bg-slate-50 dark:bg-[#1b2536] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
               <div id="fav-dropdown-start" class="mt-1.5"></div>
             </div>
 
@@ -201,175 +309,178 @@
                 </button>
               </div>
               <input type="text" id="end-addr" placeholder="Till" required
-                class="w-full bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
+                class="w-full bg-slate-50 dark:bg-[#1b2536] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
               <div id="fav-dropdown-end" class="mt-1.5"></div>
+            </div>
+
+            <!-- Knapp för att fälla ut valfri via-adress -->
+            <div id="via-toggle-row" class="sm:col-span-2">
+              <button type="button" onclick="toggleViaField(true)"
+                class="inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:underline cursor-pointer">
+                <span>+ Lägg till via-adress</span>
+              </button>
+            </div>
+
+            <!-- Valfri via-adress -->
+            <div id="via-field-container" class="hidden sm:col-span-2 bg-slate-50/80 dark:bg-[#1b2536]/80 border border-slate-200 dark:border-[#3e4c63] rounded-xl p-3">
+              <div class="flex justify-between items-center mb-1.5">
+                <label for="via-addr" class="block text-xs font-medium text-slate-600 dark:text-slate-300">Via-adress / Ort (valfritt)</label>
+                <div class="flex items-center gap-3">
+                  <button type="button" onclick="saveFavoriteFromInput('via-addr')" title="Spara som favorit"
+                    class="text-[11px] font-medium text-accent hover:underline cursor-pointer">
+                    + Spara favorit
+                  </button>
+                  <button type="button" onclick="toggleViaField(false)" title="Ta bort via-adress"
+                    class="text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-red-500 dark:hover:text-red-400 cursor-pointer">
+                    Ta bort
+                  </button>
+                </div>
+              </div>
+              <input type="text" id="via-addr" placeholder="Via (t.ex. mellanstopp eller kund)"
+                class="w-full bg-white dark:bg-[#263347] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
+              <div id="fav-dropdown-via" class="mt-1.5"></div>
             </div>
           </div>
 
-          <div id="purpose-wrapper" class="sm:col-span-2">
-            <label for="purpose" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Ändamål / Anteckning (krävs vid tjänsteresa)</label>
-            <input type="text" id="purpose" placeholder="t.ex. Kundbesök, service, materialinköp"
-              class="w-full bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
+          <!-- Ändamål (döljs vid privatresa) -->
+          <div id="purpose-wrapper">
+            <label for="purpose" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Ändamål / Anteckning</label>
+            <input type="text" id="purpose" placeholder="T.ex. Kundmöte, leverans..." required
+              class="w-full bg-slate-50 dark:bg-[#1b2536] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent transition-colors">
           </div>
 
-          <div class="sm:col-span-2 pt-1 flex gap-2">
-            <button type="submit" id="submit-btn"
-              class="flex-1 bg-accent hover:bg-accent-hover text-white font-semibold py-3 px-4 rounded-xl text-sm transition-colors shadow-sm cursor-pointer">
-              Spara resa
-            </button>
-            <button type="button" id="cancel-edit-btn" onclick="cancelEdit()"
-              class="hidden bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 font-semibold py-3 px-4 rounded-xl text-sm transition-colors cursor-pointer">
-              Avbryt
-            </button>
-          </div>
+          <!-- Spara-knapp -->
+          <button type="submit" id="submit-btn"
+            class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 px-4 rounded-xl text-sm shadow-sm transition-colors cursor-pointer">
+            Spara resa
+          </button>
         </form>
       </section>
 
-      <!-- Meddelande- och bekräftelseruta ovanför registrerade resor -->
-      <div id="toast-box" class="hidden mb-4 p-3.5 rounded-xl border text-sm font-medium flex justify-between items-center transition-all">
-        <span id="toast-message"></span>
-        <div id="toast-actions" class="flex gap-2 ml-3 shrink-0"></div>
-      </div>
+      <!-- Meddelanderuta för formuläret -->
+      <div id="form-toast-box" class="hidden rounded-2xl p-3.5 text-sm font-medium border transition-all"></div>
+    </div>
 
-      <!-- Lista över registrerade resor -->
-      <section id="trip-list-section">
-        <div class="flex justify-between items-center mb-3">
-          <h2 class="text-xs font-semibold text-slate-500 dark:text-slate-300 uppercase tracking-wider">Registrerade resor</h2>
-          <span id="trip-count" class="text-xs font-medium text-slate-500 dark:text-slate-300">0 st</span>
+    <!-- ==================== FLIK 2: ÖVERSIKT & EXPORT ==================== -->
+    <div id="view-export" class="hidden space-y-5">
+
+      <!-- Summeringskort -->
+      <section class="grid grid-cols-3 gap-2.5">
+        <div class="bg-white dark:bg-[#232f42] p-3.5 rounded-2xl border border-slate-200 dark:border-[#334155]">
+          <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Totalt</p>
+          <p id="stat-total" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-0.5">0 km</p>
         </div>
-        <div id="trip-list" class="flex flex-col gap-2.5"></div>
+        <div class="bg-white dark:bg-[#232f42] p-3.5 rounded-2xl border border-slate-200 dark:border-[#334155]">
+          <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Tjänst</p>
+          <p id="stat-work" class="text-base sm:text-lg font-bold text-accent mt-0.5">0 km</p>
+        </div>
+        <div class="bg-white dark:bg-[#232f42] p-3.5 rounded-2xl border border-slate-200 dark:border-[#334155]">
+          <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400">Privat</p>
+          <p id="stat-private" class="text-base sm:text-lg font-bold text-amber-500 mt-0.5">0 km</p>
+        </div>
       </section>
-    </main>
 
-    <!-- FLIK 2: EXPORTERA -->
-    <section id="tab-export" class="hidden">
-      <div class="bg-white dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] rounded-xl p-5 sm:p-6 mb-5 shadow-sm transition-colors">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 p-2.5 rounded-xl">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <path d="M8 13h2"/><path d="M8 17h2"/><path d="M14 13h2"/><path d="M14 17h2"/>
-            </svg>
-          </div>
+      <!-- Årsdiagram & Månadsöversikt -->
+      <section class="bg-white dark:bg-[#232f42] rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-[#334155] shadow-sm space-y-4">
+        <div class="flex items-center justify-between gap-2">
           <div>
-            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Exportera till Excel</h2>
-            <p class="text-xs text-slate-500 dark:text-slate-300">Välj period och ladda ner i .xlsx-format</p>
+            <h2 class="text-base font-bold text-slate-900 dark:text-white">Månadsöversikt</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Tryck på en stapel för att välja månad</p>
           </div>
-        </div>
-
-        <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
-          Välj en specifik månad eller hela journalen nedan för att exportera en Excel-fil (<strong>.xlsx</strong>) med färdiga kolumner och sammanställning centrerad under körsträckan.
-        </p>
-
-        <!-- Månadsväljare -->
-        <div class="mb-4">
-          <label for="export-month-select" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Välj period att exportera</label>
-          <select id="export-month-select" onchange="updateExportSummary()"
-            class="w-full bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3.5 py-2.5 rounded-xl text-sm font-medium focus:outline-none focus:border-accent transition-colors cursor-pointer">
-            <option value="all">Alla månader</option>
+          <select id="chart-year-select" onchange="renderMonthlyOverview()"
+            class="bg-slate-50 dark:bg-[#1b2536] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-white px-3 py-1.5 rounded-xl text-xs font-semibold focus:outline-none focus:border-accent">
           </select>
         </div>
 
-        <!-- Sammanställning inför export -->
-        <div class="bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#3e4c63] rounded-xl p-4 mb-5 flex flex-col gap-2.5 text-sm">
-          <div class="flex justify-between items-center">
-            <span class="text-slate-600 dark:text-slate-300">Antal resor i vald period:</span>
-            <strong id="exp-count" class="font-semibold text-slate-900 dark:text-slate-100 tabular-nums">0 st</strong>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-slate-600 dark:text-slate-300">Tjänsteresor:</span>
-            <strong id="exp-work" class="font-semibold text-accent tabular-nums">0 km</strong>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-slate-600 dark:text-slate-300">Privatresor:</span>
-            <strong id="exp-priv" class="font-semibold text-amber-600 dark:text-amber-400 tabular-nums">0 km</strong>
-          </div>
-          <div class="flex justify-between items-center pt-2.5 mt-0.5 border-t border-slate-200 dark:border-[#3e4c63]">
-            <span class="font-semibold text-slate-800 dark:text-slate-200">Total körsträcka:</span>
-            <strong id="exp-total" class="font-bold text-slate-900 dark:text-slate-50 tabular-nums">0 km</strong>
-          </div>
-        </div>
-
-        <button type="button" onclick="exportExcel()"
-          class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3.5 px-4 rounded-xl text-sm transition-colors shadow-sm cursor-pointer flex items-center justify-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          <span>Exportera Excel (.xlsx)</span>
-        </button>
-
-        <!-- Statusmeddelande för export -->
-        <div id="export-feedback" class="hidden mt-4 p-3.5 rounded-xl border text-xs sm:text-sm font-medium leading-relaxed"></div>
-      </div>
-
-      <!-- Månadsöversikt -->
-      <div class="bg-white dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] rounded-xl p-5 sm:p-6 shadow-sm transition-colors">
-        <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
-          <div>
-            <h2 class="text-base font-semibold text-slate-900 dark:text-slate-100">Månadsöversikt</h2>
-            <p class="text-xs text-slate-500 dark:text-slate-300">Årsdiagram &amp; summering per månad (km)</p>
-          </div>
-          <select id="chart-year-select" onchange="renderMonthlyChart()" aria-label="Välj år för diagram"
-            class="bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-slate-50 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:border-accent transition-colors cursor-pointer">
-          </select>
-        </div>
-
-        <!-- Stapeldiagram över året -->
-        <div class="bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#3e4c63] rounded-xl p-3.5 sm:p-4 mb-5">
-          <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
-            <div class="flex items-center gap-4 text-xs font-medium text-slate-600 dark:text-slate-300">
-              <span class="flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-sm bg-accent inline-block"></span>
-                Tjänst
-              </span>
-              <span class="flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-sm bg-amber-500 inline-block"></span>
-                Privat
-              </span>
-            </div>
-            <span id="chart-hover-info" class="text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-300 tabular-nums">
-              Tryck på en stapel för detaljer
+        <!-- Förklaring & Vald stapelinfo -->
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-4">
+            <span class="inline-flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+              <span class="w-3 h-3 rounded-sm bg-accent inline-block"></span> Tjänst
+            </span>
+            <span class="inline-flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+              <span class="w-3 h-3 rounded-sm bg-amber-400 inline-block"></span> Privat
             </span>
           </div>
-
-          <div id="yearly-bar-chart" class="relative pt-2"></div>
+          <span id="chart-selected-info" class="text-xs font-semibold text-accent"></span>
         </div>
 
-        <div id="monthly-overview-list" class="flex flex-col gap-3"></div>
-      </div>
-    </section>
-  </div>
+        <!-- Stapeldiagram -->
+        <div id="yearly-chart-container" class="pt-2"></div>
+
+        <!-- Månadstabell -->
+        <div id="monthly-table-container" class="pt-2 border-t border-slate-200 dark:border-[#334155]"></div>
+      </section>
+
+      <!-- Exportsektion -->
+      <section class="bg-white dark:bg-[#232f42] rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-[#334155] shadow-sm space-y-4">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">Exportera till Excel (.xlsx)</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Inkluderar komplett reselista samt sammanställning av tjänste- och privatresor.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="export-scope" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Period</label>
+            <select id="export-scope" onchange="toggleMonthPicker()"
+              class="w-full bg-slate-50 dark:bg-[#1b2536] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-white px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent">
+              <option value="month">Vald månad</option>
+              <option value="year">Hela valda året</option>
+              <option value="all">Alla registrerade resor</option>
+            </select>
+          </div>
+
+          <div id="export-month-wrapper">
+            <label for="export-month" class="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Välj månad</label>
+            <input type="month" id="export-month"
+              class="w-full bg-slate-50 dark:bg-[#1b2536] border border-slate-300 dark:border-[#3e4c63] text-slate-900 dark:text-white px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:border-accent">
+          </div>
+        </div>
+
+        <div id="export-toast-box" class="hidden rounded-xl p-3 text-xs font-medium border"></div>
+
+        <button type="button" onclick="exportExcel()"
+          class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 px-4 rounded-xl text-sm shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+          </svg>
+          Ladda ner Excel-fil (.xlsx)
+        </button>
+      </section>
+
+      <!-- Meddelande- och bekräftelseruta (placerad direkt ovanför registrerade resor) -->
+      <div id="toast-box" class="hidden rounded-2xl p-3.5 text-sm font-medium border transition-all"></div>
+
+      <!-- Lista med registrerade resor -->
+      <section class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">Registrerade resor</h2>
+          <span id="trip-count" class="text-xs font-medium text-slate-500 dark:text-slate-400">0 st</span>
+        </div>
+
+        <div id="trips-list" class="space-y-2.5"></div>
+      </section>
+    </div>
+  </main>
 
   <script>
     // Nycklar för localStorage
-    const STORAGE_KEY = 'korjournal_trips_v3';
+    const STORAGE_KEY = 'korjournal_trips_v1';
     const FAVORITES_KEY = 'korjournal_favorites_v1';
     const THEME_KEY = 'korjournal_theme_v1';
     const ACCENT_KEY = 'korjournal_accent_v1';
+    const BG_KEY = 'korjournal_bg_v1';
+    const REGNR_KEY = 'korjournal_regnr_v1';
+    const FONT_KEY = 'korjournal_font_v1';
 
-    // Tillgängliga accentfärger
-    const ACCENT_THEMES = {
-      blue:    { main: '#3b82f6', hover: '#2563eb', soft: 'rgba(59, 130, 246, 0.15)', border: 'rgba(59, 130, 246, 0.35)' },
-      emerald: { main: '#10b981', hover: '#059669', soft: 'rgba(16, 185, 129, 0.15)', border: 'rgba(16, 185, 129, 0.35)' },
-      orange:  { main: '#f97316', hover: '#ea580c', soft: 'rgba(249, 115, 22, 0.15)', border: 'rgba(249, 115, 22, 0.35)' },
-      violet:  { main: '#8b5cf6', hover: '#7c3aed', soft: 'rgba(139, 92, 246, 0.15)', border: 'rgba(139, 92, 246, 0.35)' },
-      rose:    { main: '#ef4444', hover: '#dc2626', soft: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.35)' }
+    const BG_TONES = {
+      slate: { light: '#f1f5f9', dark: '#182232' },
+      midnight: { light: '#e4e4e7', dark: '#0f172a' },
+      warm: { light: '#f5f0eb', dark: '#1f1d1b' },
+      forest: { light: '#ecfdf5', dark: '#13221f' }
     };
 
-    const MONTH_NAMES = [
-      'Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni',
-      'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'
-    ];
-
-    const SHORT_MONTH_NAMES = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'
-    ];
-
-    // Exempeldata som visas första gången om localStorage är tomt
+    // Exempeldata första gången appen öppnas
     const SAMPLE_TRIPS = [
       {
         id: 1,
@@ -379,6 +490,7 @@
         odoEnd: 45385,
         distance: 52,
         startAddr: 'Kontoret, Stockholm',
+        viaAddr: '',
         endAddr: 'Kundbesök, Uppsala',
         purpose: 'Projektmöte och genomgång'
       },
@@ -390,146 +502,206 @@
         odoEnd: 45410,
         distance: 25,
         startAddr: '',
+        viaAddr: '',
         endAddr: '',
         purpose: ''
       }
     ];
 
-    const DEFAULT_FAVORITES = ['Hem', 'Kontoret'];
-
-    let trips = loadTrips();
-    let favorites = loadFavorites();
+    let trips = [];
+    let favorites = [];
     let editingTripId = null;
 
-    function loadTrips() {
+    // Ladda sparad data
+    function loadData() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw === null) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_TRIPS));
-          return [...SAMPLE_TRIPS];
-        }
-        return JSON.parse(raw);
+        const savedTrips = localStorage.getItem(STORAGE_KEY);
+        trips = savedTrips !== null ? JSON.parse(savedTrips) : SAMPLE_TRIPS;
       } catch (e) {
-        return [...SAMPLE_TRIPS];
+        trips = SAMPLE_TRIPS;
+      }
+
+      try {
+        const savedFavs = localStorage.getItem(FAVORITES_KEY);
+        favorites = savedFavs !== null ? JSON.parse(savedFavs) : ['Kontoret, Stockholm', 'Hem'];
+      } catch (e) {
+        favorites = [];
       }
     }
 
     function saveTrips() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
-      } catch (e) {
-        showToast('Kunde inte spara lokalt i webbläsaren.', 'error');
-      }
-    }
-
-    function loadFavorites() {
-      try {
-        const raw = localStorage.getItem(FAVORITES_KEY);
-        if (raw === null) {
-          localStorage.setItem(FAVORITES_KEY, JSON.stringify(DEFAULT_FAVORITES));
-          return [...DEFAULT_FAVORITES];
-        }
-        return JSON.parse(raw);
-      } catch (e) {
-        return [...DEFAULT_FAVORITES];
-      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(trips));
     }
 
     function saveFavorites() {
-      try {
-        localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-      } catch (e) {}
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     }
 
-    // Tema och accentfärg
-    function setAccent(colorKey) {
-      const theme = ACCENT_THEMES[colorKey] || ACCENT_THEMES.blue;
-      const root = document.documentElement;
-      root.style.setProperty('--accent', theme.main);
-      root.style.setProperty('--accent-hover', theme.hover);
-      root.style.setProperty('--accent-soft', theme.soft);
-      root.style.setProperty('--accent-border', theme.border);
+    // Inställningsmodal & Registreringsnummer
+    function toggleSettingsModal(show) {
+      const modal = document.getElementById('settings-modal');
+      if (!modal) return;
+      if (show) {
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
 
-      try {
-        localStorage.setItem(ACCENT_KEY, colorKey);
-      } catch (e) {}
+    function saveRegNr(val) {
+      const cleaned = val.toUpperCase();
+      localStorage.setItem(REGNR_KEY, cleaned.trim());
+      updateHeaderSubtitle(cleaned.trim());
+    }
 
-      document.querySelectorAll('.color-dot').forEach(dot => {
-        if (dot.dataset.color === colorKey) {
-          dot.classList.add('ring-2', 'ring-slate-900', 'dark:ring-white', 'scale-110');
+    function updateHeaderSubtitle(regNr) {
+      const subtitle = document.getElementById('header-subtitle');
+      if (!subtitle) return;
+      subtitle.textContent = regNr ? `${regNr} • Lokal logg` : 'Lokal & privat logg';
+    }
+
+    // Tema, accentfärg och reg-nr
+    function initThemeAndColors() {
+      const savedRegNr = localStorage.getItem(REGNR_KEY) || '';
+      const regInput = document.getElementById('reg-nr-input');
+      if (regInput) regInput.value = savedRegNr;
+      updateHeaderSubtitle(savedRegNr);
+
+      const savedFont = localStorage.getItem(FONT_KEY) || "'Plus Jakarta Sans', sans-serif";
+      applyFontStyle(savedFont);
+
+      const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+
+      const savedBg = localStorage.getItem(BG_KEY) || 'slate';
+      applyBgTone(savedBg);
+
+      const savedAccent = localStorage.getItem(ACCENT_KEY);
+      if (savedAccent) {
+        try {
+          const { main, hover, soft } = JSON.parse(savedAccent);
+          applyAccentStyles(main, hover, soft);
+        } catch (e) {}
+      } else {
+        applyAccentStyles('#f97316', '#ea580c', 'rgba(249, 115, 22, 0.15)');
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+      applyBgTone(localStorage.getItem(BG_KEY) || 'slate');
+    }
+
+    function setBgTone(tone) {
+      localStorage.setItem(BG_KEY, tone);
+      applyBgTone(tone);
+    }
+
+    function applyBgTone(tone) {
+      const palette = BG_TONES[tone] || BG_TONES.slate;
+      const isDark = document.documentElement.classList.contains('dark');
+      document.documentElement.style.setProperty('--bg-page', isDark ? palette.dark : palette.light);
+
+      document.querySelectorAll('.bg-dot').forEach(dot => {
+        if (dot.dataset.bg === tone) {
+          dot.classList.add('ring-2', 'ring-slate-900', 'dark:ring-white');
         } else {
-          dot.classList.remove('ring-2', 'ring-slate-900', 'dark:ring-white', 'scale-110');
+          dot.classList.remove('ring-2', 'ring-slate-900', 'dark:ring-white');
         }
       });
     }
 
-    function toggleTheme() {
-      const html = document.documentElement;
-      const isDark = html.classList.toggle('dark');
-      const metaTheme = document.getElementById('meta-theme-color');
-      if (metaTheme) {
-        metaTheme.setAttribute('content', isDark ? '#1e293b' : '#f8fafc');
-      }
-      try {
-        localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
-      } catch (e) {}
+    function setAccentColor(main, hover, soft) {
+      applyAccentStyles(main, hover, soft);
+      localStorage.setItem(ACCENT_KEY, JSON.stringify({ main, hover, soft }));
     }
 
-    function initThemeAndColors() {
-      let savedTheme = 'dark';
-      let savedAccent = 'blue';
-      try {
-        savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
-        savedAccent = localStorage.getItem(ACCENT_KEY) || 'blue';
-      } catch (e) {}
-
-      const html = document.documentElement;
-      const metaTheme = document.getElementById('meta-theme-color');
-      if (savedTheme === 'light') {
-        html.classList.remove('dark');
-        if (metaTheme) metaTheme.setAttribute('content', '#f8fafc');
-      } else {
-        html.classList.add('dark');
-        if (metaTheme) metaTheme.setAttribute('content', '#1e293b');
-      }
-
-      setAccent(savedAccent);
+    function setAppFont(fontFamily) {
+      applyFontStyle(fontFamily);
+      localStorage.setItem(FONT_KEY, fontFamily);
     }
 
-    // Växla mellan flikarna Körjournal och Exportera
+    function applyFontStyle(fontFamily) {
+      document.documentElement.style.setProperty('--app-font', fontFamily);
+      const fontSelect = document.getElementById('font-select');
+      if (fontSelect) fontSelect.value = fontFamily;
+    }
+
+    function applyAccentStyles(main, hover, soft) {
+      document.documentElement.style.setProperty('--accent', main);
+      document.documentElement.style.setProperty('--accent-hover', hover);
+      document.documentElement.style.setProperty('--accent-soft', soft);
+
+      document.querySelectorAll('.color-dot').forEach(dot => {
+        if (dot.dataset.color === main) {
+          dot.classList.add('ring-2', 'ring-slate-900', 'dark:ring-white');
+        } else {
+          dot.classList.remove('ring-2', 'ring-slate-900', 'dark:ring-white');
+        }
+      });
+    }
+
+    // Flikväxling
     function switchTab(tab) {
-      const journalTab = document.getElementById('tab-journal');
-      const exportTab = document.getElementById('tab-export');
-      const journalBtn = document.getElementById('tab-btn-journal');
-      const exportBtn = document.getElementById('tab-btn-export');
+      const regView = document.getElementById('view-register');
+      const expView = document.getElementById('view-export');
+      const regBtn = document.getElementById('tab-register');
+      const expBtn = document.getElementById('tab-export');
 
-      if (tab === 'export') {
-        journalTab.classList.add('hidden');
-        exportTab.classList.remove('hidden');
-
-        exportBtn.classList.add('bg-accent', 'text-white');
-        exportBtn.classList.remove('text-slate-600', 'dark:text-slate-300');
-        exportBtn.setAttribute('aria-selected', 'true');
-
-        journalBtn.classList.remove('bg-accent', 'text-white');
-        journalBtn.classList.add('text-slate-600', 'dark:text-slate-300');
-        journalBtn.setAttribute('aria-selected', 'false');
-
-        updateMonthDropdown();
-        updateChartYearDropdown();
-        renderMonthlyChart();
-        renderMonthlyOverview();
+      if (tab === 'register') {
+        regView.classList.remove('hidden');
+        expView.classList.add('hidden');
+        regBtn.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm';
+        expBtn.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white';
       } else {
-        exportTab.classList.add('hidden');
-        journalTab.classList.remove('hidden');
+        regView.classList.add('hidden');
+        expView.classList.remove('hidden');
+        expBtn.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm';
+        regBtn.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white';
+        initExportControls();
+        renderMonthlyOverview();
+      }
+    }
 
-        journalBtn.classList.add('bg-accent', 'text-white');
-        journalBtn.classList.remove('text-slate-600', 'dark:text-slate-300');
-        journalBtn.setAttribute('aria-selected', 'true');
+    // Initiera formulärvärden
+    function initForm() {
+      const odoStartInput = document.getElementById('odo-start');
+      if (editingTripId === null) {
+        if (trips.length > 0) {
+          const latestOdo = Math.max(...trips.map(t => Number(t.odoEnd) || 0));
+          odoStartInput.value = latestOdo > 0 ? latestOdo : '';
+        } else {
+          odoStartInput.value = '';
+        }
+      }
+      handleTripTypeChange();
+      renderFavoriteDropdowns();
+      updateLiveDistance();
+    }
 
-        exportBtn.classList.remove('bg-accent', 'text-white');
-        exportBtn.classList.add('text-slate-600', 'dark:text-slate-300');
-        exportBtn.setAttribute('aria-selected', 'false');
+    // Beräkna sträcka i realtid
+    function updateLiveDistance() {
+      const startVal = Number(document.getElementById('odo-start').value);
+      const endVal = Number(document.getElementById('odo-end').value);
+      const badge = document.getElementById('live-distance');
+
+      if (!isNaN(startVal) && !isNaN(endVal) && document.getElementById('odo-end').value !== '') {
+        const diff = endVal - startVal;
+        if (diff >= 0) {
+          badge.textContent = `Sträcka: ${diff} km`;
+          badge.className = 'text-xs sm:text-sm font-extrabold px-3 py-1 rounded-xl bg-accent text-white shadow-xs';
+        } else {
+          badge.textContent = `Ogiltig (${diff} km)`;
+          badge.className = 'text-xs sm:text-sm font-extrabold px-3 py-1 rounded-xl bg-red-600 text-white shadow-xs';
+        }
+      } else {
+        badge.textContent = 'Sträcka: 0 km';
+        badge.className = 'text-xs sm:text-sm font-extrabold px-3 py-1 rounded-xl bg-accent text-white shadow-xs';
       }
     }
 
@@ -540,32 +712,50 @@
       const purposeWrapper = document.getElementById('purpose-wrapper');
       const startInput = document.getElementById('start-addr');
       const endInput = document.getElementById('end-addr');
+      const purposeInput = document.getElementById('purpose');
 
       if (type === 'Privat') {
         addrWrapper.classList.add('hidden');
         purposeWrapper.classList.add('hidden');
         startInput.required = false;
         endInput.required = false;
+        purposeInput.required = false;
       } else {
         addrWrapper.classList.remove('hidden');
         purposeWrapper.classList.remove('hidden');
         startInput.required = true;
         endInput.required = true;
+        purposeInput.required = true;
       }
     }
 
-    // Favorit-orter (dropdown under respektive fält)
+    // Visa eller dölj fältet för via-adress
+    function toggleViaField(show) {
+      const toggleRow = document.getElementById('via-toggle-row');
+      const viaContainer = document.getElementById('via-field-container');
+      const viaInput = document.getElementById('via-addr');
+
+      if (show) {
+        toggleRow.classList.add('hidden');
+        viaContainer.classList.remove('hidden');
+        viaInput.focus();
+      } else {
+        viaInput.value = '';
+        viaContainer.classList.add('hidden');
+        toggleRow.classList.remove('hidden');
+      }
+    }
+
+    // Favorit-orter (dropdown-meny under respektive fält)
     function saveFavoriteFromInput(inputId) {
       const input = document.getElementById(inputId);
       const val = input.value.trim();
       if (!val) {
-        showToast('Skriv in en adress eller ort först innan du sparar den som favorit.', 'error');
+        showToast('Skriv in en adress eller ort först innan du sparar som favorit.', 'error');
         return;
       }
-      const exists = favorites.some(f => f.toLowerCase() === val.toLowerCase());
-      if (!exists) {
+      if (!favorites.some(f => f.toLowerCase() === val.toLowerCase())) {
         favorites.push(val);
-        favorites.sort((a, b) => a.localeCompare(b, 'sv'));
         saveFavorites();
         renderFavoriteDropdowns();
         showToast(`"${val}" sparades i dina favorit-orter.`, 'success');
@@ -574,29 +764,29 @@
       }
     }
 
-    function selectFavorite(inputId, selectEl) {
-      const val = selectEl.value;
-      if (val) {
-        document.getElementById(inputId).value = val;
+    function selectFavoriteForInput(inputId, selectEl) {
+      if (selectEl.value) {
+        document.getElementById(inputId).value = selectEl.value;
       }
     }
 
-    function deleteFavorite(inputId) {
-      const selectEl = document.getElementById(`fav-select-${inputId}`);
-      if (!selectEl || !selectEl.value) {
+    function deleteSelectedFavorite(selectId) {
+      const selectEl = document.getElementById(selectId);
+      const val = selectEl ? selectEl.value : '';
+      if (!val) {
         showToast('Välj en favorit i listan först för att ta bort den.', 'info');
         return;
       }
-      const toRemove = selectEl.value;
-      favorites = favorites.filter(f => f !== toRemove);
+      favorites = favorites.filter(f => f !== val);
       saveFavorites();
       renderFavoriteDropdowns();
-      showToast(`"${toRemove}" togs bort från favoriterna.`, 'info');
+      showToast(`"${val}" togs bort från favoriter.`, 'info');
     }
 
     function renderFavoriteDropdowns() {
       const targets = [
         { inputId: 'start-addr', containerId: 'fav-dropdown-start' },
+        { inputId: 'via-addr', containerId: 'fav-dropdown-via' },
         { inputId: 'end-addr', containerId: 'fav-dropdown-end' }
       ];
 
@@ -609,57 +799,99 @@
           return;
         }
 
+        const selectId = `select-${containerId}`;
         const optionsHtml = favorites
           .map(fav => `<option value="${escapeHTML(fav)}">${escapeHTML(fav)}</option>`)
           .join('');
 
         container.innerHTML = `
           <div class="flex items-center gap-1.5">
-            <select id="fav-select-${inputId}" onchange="selectFavorite('${inputId}', this)" aria-label="Välj favoritort"
-              class="flex-1 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#3e4c63] text-slate-700 dark:text-slate-200 px-2.5 py-1.5 rounded-lg text-xs focus:outline-none focus:border-accent transition-colors cursor-pointer">
-              <option value="">Välj favorit (${favorites.length})...</option>
+            <select id="${selectId}" onchange="selectFavoriteForInput('${inputId}', this)"
+              class="flex-1 bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] text-slate-700 dark:text-slate-200 px-2.5 py-1.5 rounded-lg text-xs focus:outline-none focus:border-accent cursor-pointer">
+              <option value="">Välj favorit-ort...</option>
               ${optionsHtml}
             </select>
-            <button type="button" onclick="deleteFavorite('${inputId}')" title="Ta bort vald favorit" aria-label="Ta bort vald favorit"
-              class="px-2 py-1.5 rounded-lg text-xs font-semibold text-slate-500 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 bg-slate-100 dark:bg-[#1e293b] border border-slate-200 dark:border-[#3e4c63] transition-colors cursor-pointer">
-              &times;
+            <button type="button" onclick="deleteSelectedFavorite('${selectId}')" title="Ta bort vald favorit"
+              class="px-2 py-1.5 rounded-lg bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] text-slate-500 dark:text-slate-400 hover:text-red-500 text-xs font-bold cursor-pointer">
+              ×
             </button>
           </div>
         `;
       });
     }
 
-    // Initiera formulär och lyssnare
-    function initForm() {
-      const dateInput = document.getElementById('date');
-      const odoStartInput = document.getElementById('odo-start');
-      const odoEndInput = document.getElementById('odo-end');
+    // Meddelanderuta och borttagningsbekräftelse
+    let toastTimeout = null;
 
-      dateInput.value = new Date().toISOString().split('T')[0];
+    function showToast(message, type = 'info') {
+      const isRegisterVisible = !document.getElementById('view-register').classList.contains('hidden');
+      const box = document.getElementById(isRegisterVisible ? 'form-toast-box' : 'toast-box');
+      if (!box) return;
+      clearTimeout(toastTimeout);
 
-      if (trips.length > 0 && editingTripId === null) {
-        const latestOdo = Math.max(...trips.map(t => Number(t.odoEnd) || 0));
-        if (latestOdo > 0) {
-          odoStartInput.value = latestOdo;
-        }
+      let styles = 'bg-slate-800 text-white border-slate-700';
+      if (type === 'success') {
+        styles = 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
+      } else if (type === 'error') {
+        styles = 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/30';
+      } else if (type === 'info') {
+        styles = 'bg-accent-soft text-slate-800 dark:text-slate-100 border-accent/30';
       }
 
-      odoStartInput.addEventListener('input', updateLiveDistance);
-      odoEndInput.addEventListener('input', updateLiveDistance);
-      renderFavoriteDropdowns();
-      handleTripTypeChange();
+      box.className = `rounded-2xl p-3.5 text-xs sm:text-sm font-medium border flex items-center justify-between gap-3 ${styles}`;
+      box.innerHTML = `
+        <span>${escapeHTML(message)}</span>
+        <button type="button" onclick="hideToast()" class="text-xs opacity-70 hover:opacity-100 font-bold px-1.5 cursor-pointer">✕</button>
+      `;
+      box.classList.remove('hidden');
+
+      toastTimeout = setTimeout(() => {
+        hideToast();
+      }, 4500);
     }
 
-    function updateLiveDistance() {
-      const start = Number(document.getElementById('odo-start').value);
-      const end = Number(document.getElementById('odo-end').value);
-      const badge = document.getElementById('live-distance');
+    function hideToast() {
+      const box = document.getElementById('toast-box');
+      const formBox = document.getElementById('form-toast-box');
+      if (box) box.classList.add('hidden');
+      if (formBox) formBox.classList.add('hidden');
+    }
 
-      if (!isNaN(start) && !isNaN(end) && end >= start && document.getElementById('odo-end').value !== '') {
-        badge.textContent = `Sträcka: ${end - start} km`;
-      } else {
-        badge.textContent = 'Sträcka: 0 km';
+    function confirmDeleteTrip(id) {
+      const trip = trips.find(t => t.id === id);
+      if (!trip) return;
+      clearTimeout(toastTimeout);
+
+      const box = document.getElementById('toast-box');
+      const label = trip.type === 'Privat'
+        ? `Privatresa (${trip.distance} km, ${trip.date})`
+        : `${trip.startAddr} → ${trip.endAddr} (${trip.distance} km)`;
+
+      box.className = 'rounded-2xl p-3.5 text-xs sm:text-sm font-medium border bg-red-500/15 text-red-800 dark:text-red-200 border-red-500/40 flex flex-wrap items-center justify-between gap-3';
+      box.innerHTML = `
+        <span>Vill du ta bort <strong>${escapeHTML(label)}</strong>?</span>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="deleteTrip(${id})"
+            class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold cursor-pointer">
+            Ja, ta bort
+          </button>
+          <button type="button" onclick="hideToast()"
+            class="px-3 py-1.5 rounded-lg bg-white/80 dark:bg-[#293548] text-slate-700 dark:text-slate-200 text-xs font-semibold cursor-pointer">
+            Avbryt
+          </button>
+        </div>
+      `;
+      box.classList.remove('hidden');
+    }
+
+    function deleteTrip(id) {
+      trips = trips.filter(t => t.id !== id);
+      if (editingTripId === id) {
+        cancelEdit();
       }
+      saveTrips();
+      render();
+      showToast('Resan har tagits bort.', 'info');
     }
 
     // Redigera befintlig resa
@@ -667,8 +899,8 @@
       const trip = trips.find(t => t.id === id);
       if (!trip) return;
 
+      switchTab('register');
       editingTripId = id;
-      document.getElementById('date').value = trip.date;
       document.getElementById('type').value = trip.type;
       handleTripTypeChange();
 
@@ -678,7 +910,14 @@
       document.getElementById('end-addr').value = trip.endAddr || '';
       document.getElementById('purpose').value = trip.purpose || '';
 
-      document.getElementById('form-title').textContent = 'Redigera resa';
+      if (trip.viaAddr && trip.viaAddr.trim() !== '') {
+        toggleViaField(true);
+        document.getElementById('via-addr').value = trip.viaAddr;
+      } else {
+        toggleViaField(false);
+      }
+
+      document.getElementById('form-title').textContent = `Redigera resa (${trip.date})`;
       document.getElementById('submit-btn').textContent = 'Uppdatera resa';
       document.getElementById('cancel-edit-btn').classList.remove('hidden');
 
@@ -690,6 +929,7 @@
     function cancelEdit() {
       editingTripId = null;
       document.getElementById('trip-form').reset();
+      toggleViaField(false);
       document.getElementById('form-title').textContent = 'Registrera resa';
       document.getElementById('submit-btn').textContent = 'Spara resa';
       document.getElementById('cancel-edit-btn').classList.add('hidden');
@@ -701,11 +941,12 @@
     document.getElementById('trip-form').addEventListener('submit', function (e) {
       e.preventDefault();
 
-      const date = document.getElementById('date').value;
+      const todayStr = new Date().toISOString().split('T')[0];
       const type = document.getElementById('type').value;
       const odoStart = Number(document.getElementById('odo-start').value);
       const odoEnd = Number(document.getElementById('odo-end').value);
       const startAddr = type === 'Privat' ? '' : document.getElementById('start-addr').value.trim();
+      const viaAddr = type === 'Privat' ? '' : document.getElementById('via-addr').value.trim();
       const endAddr = type === 'Privat' ? '' : document.getElementById('end-addr').value.trim();
       const purpose = type === 'Privat' ? '' : document.getElementById('purpose').value.trim();
 
@@ -731,12 +972,12 @@
         if (idx !== -1) {
           trips[idx] = {
             ...trips[idx],
-            date,
             type,
             odoStart,
             odoEnd,
             distance,
             startAddr,
+            viaAddr,
             endAddr,
             purpose
           };
@@ -748,12 +989,13 @@
       } else {
         const newTrip = {
           id: Date.now(),
-          date,
+          date: todayStr,
           type,
           odoStart,
           odoEnd,
           distance,
           startAddr,
+          viaAddr,
           endAddr,
           purpose
         };
@@ -762,6 +1004,7 @@
         saveTrips();
 
         this.reset();
+        toggleViaField(false);
         initForm();
         updateLiveDistance();
         render();
@@ -769,346 +1012,211 @@
       }
     });
 
-    // Ta bort resa med bekräftelse
-    function deleteTrip(id) {
-      showToast(
-        'Vill du ta bort den här resan?',
-        'confirm',
-        `
-          <button type="button" onclick="confirmDeleteTrip(${id})"
-            class="bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-            Ja, ta bort
-          </button>
-          <button type="button" onclick="hideToast()"
-            class="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-100 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
-            Avbryt
-          </button>
-        `
-      );
-    }
-
-    function confirmDeleteTrip(id) {
-      if (editingTripId === id) {
-        cancelEdit();
-      }
-      trips = trips.filter(t => t.id !== id);
-      saveTrips();
-      render();
-      showToast('Resan togs bort.', 'info');
-    }
-
-    // Meddelande- och bekräftelseruta
-    let toastTimer = null;
-
-    function showToast(message, type = 'info', actionsHtml = '') {
-      const box = document.getElementById('toast-box');
-      const msgEl = document.getElementById('toast-message');
-      const actionsEl = document.getElementById('toast-actions');
-
-      if (toastTimer) {
-        clearTimeout(toastTimer);
-        toastTimer = null;
+    // Exportkontroller och månadsöversikt
+    function initExportControls() {
+      const monthInput = document.getElementById('export-month');
+      if (!monthInput.value) {
+        const now = new Date();
+        monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       }
 
-      box.className = 'mb-4 p-3.5 rounded-xl border text-sm font-medium flex justify-between items-center transition-all';
-
-      if (type === 'error') {
-        box.classList.add('bg-red-500/15', 'border-red-500/40', 'text-red-700', 'dark:text-red-200');
-      } else if (type === 'success') {
-        box.classList.add('bg-emerald-500/15', 'border-emerald-500/40', 'text-emerald-800', 'dark:text-emerald-200');
-      } else if (type === 'confirm') {
-        box.classList.add('bg-amber-500/15', 'border-amber-500/40', 'text-amber-900', 'dark:text-amber-100');
-      } else {
-        box.classList.add('bg-white', 'dark:bg-[#293548]', 'border-slate-300', 'dark:border-[#3e4c63]', 'text-slate-800', 'dark:text-slate-100');
-      }
-
-      msgEl.textContent = message;
-      actionsEl.innerHTML = actionsHtml;
-      box.classList.remove('hidden');
-
-      if (type !== 'confirm') {
-        toastTimer = setTimeout(() => {
-          hideToast();
-        }, 4000);
-      }
-    }
-
-    function hideToast() {
-      const box = document.getElementById('toast-box');
-      if (box) box.classList.add('hidden');
-    }
-
-    function showExportFeedback(message, type = 'success') {
-      const box = document.getElementById('export-feedback');
-      box.className = 'mt-4 p-3.5 rounded-xl border text-xs sm:text-sm font-medium leading-relaxed';
-      if (type === 'error') {
-        box.classList.add('bg-red-500/15', 'border-red-500/40', 'text-red-700', 'dark:text-red-200');
-      } else {
-        box.classList.add('bg-emerald-500/15', 'border-emerald-500/40', 'text-emerald-800', 'dark:text-emerald-200');
-      }
-      box.textContent = message;
-      box.classList.remove('hidden');
-    }
-
-    // Månadshjälpare för export och översikt
-    function getAvailableMonths() {
-      const set = new Set();
-      trips.forEach(t => {
-        if (t.date && t.date.length >= 7) {
-          set.add(t.date.slice(0, 7));
-        }
-      });
-      return Array.from(set).sort((a, b) => b.localeCompare(a));
-    }
-
-    function formatMonthLabel(ym) {
-      const [year, month] = ym.split('-');
-      const idx = parseInt(month, 10) - 1;
-      const name = MONTH_NAMES[idx] || month;
-      return `${name} ${year}`;
-    }
-
-    function updateMonthDropdown() {
-      const selectEl = document.getElementById('export-month-select');
-      const currentVal = selectEl.value;
-      const months = getAvailableMonths();
-
-      let optionsHtml = '<option value="all">Alla månader</option>';
-      months.forEach(ym => {
-        optionsHtml += `<option value="${ym}">${formatMonthLabel(ym)}</option>`;
-      });
-
-      selectEl.innerHTML = optionsHtml;
-      if (currentVal && (currentVal === 'all' || months.includes(currentVal))) {
-        selectEl.value = currentVal;
-      }
-      updateExportSummary();
-    }
-
-    function getFilteredTrips() {
-      const selected = document.getElementById('export-month-select').value;
-      if (selected === 'all') return trips;
-      return trips.filter(t => t.date && t.date.startsWith(selected));
-    }
-
-    function updateExportSummary() {
-      const filtered = getFilteredTrips();
-      let workKm = 0, privKm = 0, totalKm = 0;
-
-      filtered.forEach(t => {
-        const dist = Number(t.distance);
-        totalKm += dist;
-        if (t.type === 'Tjänst') workKm += dist;
-        else privKm += dist;
-      });
-
-      document.getElementById('exp-count').textContent = `${filtered.length} st`;
-      document.getElementById('exp-work').textContent = `${workKm} km`;
-      document.getElementById('exp-priv').textContent = `${privKm} km`;
-      document.getElementById('exp-total').textContent = `${totalKm} km`;
-    }
-
-    // Välj specifik månad genom att klicka på ett kort eller en stapel i månadsöversikten
-    function selectMonthForExport(ym) {
-      const selectEl = document.getElementById('export-month-select');
-      if ([...selectEl.options].some(opt => opt.value === ym)) {
-        selectEl.value = ym;
-        updateExportSummary();
-        selectEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-
-    // Uppdatera årsväljaren för stapeldiagrammet
-    function updateChartYearDropdown() {
       const yearSelect = document.getElementById('chart-year-select');
-      if (!yearSelect) return;
-
-      const currentYear = String(new Date().getFullYear());
-      const prevVal = yearSelect.value;
-      const yearSet = new Set([currentYear]);
-
+      const currentYear = new Date().getFullYear();
+      const yearsSet = new Set([currentYear]);
       trips.forEach(t => {
         if (t.date && t.date.length >= 4) {
-          yearSet.add(t.date.slice(0, 4));
+          yearsSet.add(Number(t.date.slice(0, 4)));
         }
       });
 
-      const years = Array.from(yearSet).sort((a, b) => b.localeCompare(a));
-      yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
-
-      if (prevVal && years.includes(prevVal)) {
-        yearSelect.value = prevVal;
-      } else {
-        yearSelect.value = years[0];
+      const sortedYears = Array.from(yearsSet).sort((a, b) => b - a);
+      const prevSelected = yearSelect.value;
+      yearSelect.innerHTML = sortedYears
+        .map(y => `<option value="${y}">${y}</option>`)
+        .join('');
+      if (prevSelected && yearsSet.has(Number(prevSelected))) {
+        yearSelect.value = prevSelected;
       }
     }
 
-    // Visa info när man hovrar eller klickar på en månad i stapeldiagrammet
-    function previewChartMonth(year, monthIndex, workKm, privKm) {
-      const infoEl = document.getElementById('chart-hover-info');
-      if (!infoEl) return;
-      const total = workKm + privKm;
-      infoEl.textContent = `${MONTH_NAMES[monthIndex]} ${year}: ${total} km (Tjänst ${workKm} / Privat ${privKm})`;
+    function toggleMonthPicker() {
+      const scope = document.getElementById('export-scope').value;
+      const monthWrapper = document.getElementById('export-month-wrapper');
+      if (scope === 'month') {
+        monthWrapper.classList.remove('hidden');
+      } else {
+        monthWrapper.classList.add('hidden');
+      }
     }
 
-    // Rendera stapeldiagrammet över årets 12 månader
-    function renderMonthlyChart() {
-      const container = document.getElementById('yearly-bar-chart');
-      const yearSelect = document.getElementById('chart-year-select');
-      if (!container || !yearSelect) return;
+    function selectMonthFromChart(year, monthIndex) {
+      const mm = String(monthIndex + 1).padStart(2, '0');
+      const ym = `${year}-${mm}`;
+      document.getElementById('export-scope').value = 'month';
+      toggleMonthPicker();
+      document.getElementById('export-month').value = ym;
+      renderMonthlyOverview(monthIndex);
+    }
 
-      const selectedYear = yearSelect.value || String(new Date().getFullYear());
-      const monthlyData = Array.from({ length: 12 }, (_, idx) => {
-        const ym = `${selectedYear}-${String(idx + 1).padStart(2, '0')}`;
-        let work = 0;
-        let priv = 0;
-        trips.forEach(t => {
-          if (t.date && t.date.startsWith(ym)) {
-            const dist = Number(t.distance) || 0;
-            if (t.type === 'Tjänst') work += dist;
-            else priv += dist;
+    function renderMonthlyOverview(highlightedMonthIdx = null) {
+      const yearSelect = document.getElementById('chart-year-select');
+      const selectedYear = Number(yearSelect.value) || new Date().getFullYear();
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+
+      const monthlyStats = Array.from({ length: 12 }, (_, idx) => ({
+        monthIndex: idx,
+        label: monthNames[idx],
+        workKm: 0,
+        privKm: 0,
+        count: 0
+      }));
+
+      trips.forEach(t => {
+        if (!t.date) return;
+        const y = Number(t.date.slice(0, 4));
+        const m = Number(t.date.slice(5, 7)) - 1;
+        if (y === selectedYear && m >= 0 && m < 12) {
+          const dist = Number(t.distance) || 0;
+          if (t.type === 'Tjänst') {
+            monthlyStats[m].workKm += dist;
+          } else {
+            monthlyStats[m].privKm += dist;
           }
-        });
-        return { ym, idx, work, priv, total: work + priv };
+          monthlyStats[m].count += 1;
+        }
       });
 
-      const maxTotal = Math.max(...monthlyData.map(m => m.total), 1);
-      const hasAnyData = monthlyData.some(m => m.total > 0);
-      const midVal = Math.round(maxTotal / 2);
+      const maxKm = Math.max(10, ...monthlyStats.map(s => s.workKm + s.privKm));
+      const activeIdx = highlightedMonthIdx !== null
+        ? highlightedMonthIdx
+        : new Date().getMonth();
 
-      const infoEl = document.getElementById('chart-hover-info');
-      if (infoEl) {
-        const yearWork = monthlyData.reduce((s, m) => s + m.work, 0);
-        const yearPriv = monthlyData.reduce((s, m) => s + m.priv, 0);
-        infoEl.textContent = hasAnyData
-          ? `Totalt ${selectedYear}: ${yearWork + yearPriv} km`
-          : `Inga resor registrerade ${selectedYear}`;
+      const activeStat = monthlyStats[activeIdx];
+      const infoEl = document.getElementById('chart-selected-info');
+      if (infoEl && activeStat) {
+        infoEl.textContent = `${activeStat.label} ${selectedYear}: ${activeStat.workKm} km tjänst / ${activeStat.privKm} km privat`;
       }
 
-      const barsHtml = monthlyData.map(m => {
-        const workPct = hasAnyData ? (m.work / maxTotal) * 100 : 0;
-        const privPct = hasAnyData ? (m.priv / maxTotal) * 100 : 0;
-        const minBarPx = (val) => (val > 0 ? 'min-height: 4px;' : '');
+      const barsHtml = monthlyStats.map(s => {
+        const total = s.workKm + s.privKm;
+        const workPct = Math.round((s.workKm / maxKm) * 100);
+        const privPct = Math.round((s.privKm / maxKm) * 100);
+        const isSelected = s.monthIndex === activeIdx;
 
         return `
-          <button type="button"
-            onmouseenter="previewChartMonth('${selectedYear}', ${m.idx}, ${m.work}, ${m.priv})"
-            onclick="previewChartMonth('${selectedYear}', ${m.idx}, ${m.work}, ${m.priv}); selectMonthForExport('${m.ym}');"
-            title="${MONTH_NAMES[m.idx]} ${selectedYear} – Tjänst: ${m.work} km, Privat: ${m.priv} km"
-            class="group flex-1 flex flex-col items-center focus:outline-none cursor-pointer">
-            <div class="w-full h-36 sm:h-44 flex flex-col justify-end items-center px-0.5 sm:px-1">
-              <div class="w-full max-w-[22px] sm:max-w-[28px] flex flex-col justify-end rounded-t-md overflow-hidden transition-transform duration-150 group-hover:scale-x-110">
-                <div style="height: ${privPct}%; ${minBarPx(m.priv)}"
-                  class="w-full bg-amber-500 transition-all duration-300 ${m.priv > 0 && m.work > 0 ? 'border-b border-slate-50 dark:border-[#1e293b]' : ''}"></div>
-                <div style="height: ${workPct}%; ${minBarPx(m.work)}"
-                  class="w-full bg-accent transition-all duration-300"></div>
-              </div>
-              ${m.total === 0 ? '<div class="w-full max-w-[22px] sm:max-w-[28px] h-[2px] bg-slate-200 dark:bg-[#3e4c63] rounded-full"></div>' : ''}
+          <button type="button" onclick="selectMonthFromChart(${selectedYear}, ${s.monthIndex})"
+            class="flex flex-col items-center gap-1.5 group focus:outline-none cursor-pointer">
+            <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 h-3.5">
+              ${total > 0 ? total : ''}
+            </span>
+            <div class="w-full max-w-[26px] h-32 bg-slate-100 dark:bg-[#1b2536] rounded-lg p-0.5 flex flex-col justify-end overflow-hidden border ${isSelected ? 'border-accent ring-2 ring-accent/30' : 'border-slate-200 dark:border-[#334155]'}">
+              <div style="height: ${privPct}%" class="w-full bg-amber-400 rounded-t-sm transition-all duration-300"></div>
+              <div style="height: ${workPct}%" class="w-full bg-accent rounded-b-sm transition-all duration-300"></div>
             </div>
-            <span class="mt-2 text-[10px] sm:text-xs font-medium text-slate-500 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-              ${SHORT_MONTH_NAMES[m.idx]}
+            <span class="text-[11px] font-semibold ${isSelected ? 'text-accent' : 'text-slate-600 dark:text-slate-300'}">
+              ${s.label}
             </span>
           </button>
         `;
       }).join('');
 
-      container.innerHTML = `
-        <div class="relative">
-          <!-- Horisontella referenslinjer -->
-          <div class="pointer-events-none absolute inset-x-0 top-2 h-36 sm:h-44 flex flex-col justify-between text-[10px] text-slate-400 dark:text-slate-400 tabular-nums">
-            <div class="border-b border-dashed border-slate-200/80 dark:border-[#3e4c63]/70 flex justify-end pr-1">
-              <span>${hasAnyData ? maxTotal + ' km' : ''}</span>
-            </div>
-            <div class="border-b border-dashed border-slate-200/80 dark:border-[#3e4c63]/70 flex justify-end pr-1">
-              <span>${hasAnyData && midVal > 0 ? midVal + ' km' : ''}</span>
-            </div>
-            <div class="border-b border-slate-200 dark:border-[#3e4c63]"></div>
-          </div>
-
-          <!-- 12 månadstaplar -->
-          <div class="relative z-10 flex items-end justify-between gap-0.5 sm:gap-1.5 pt-2">
-            ${barsHtml}
-          </div>
+      document.getElementById('yearly-chart-container').innerHTML = `
+        <div class="grid grid-cols-12 gap-1 sm:gap-2 items-end">
+          ${barsHtml}
         </div>
       `;
+
+      // Kompakt tabell över månader med registrerade resor
+      const activeMonths = monthlyStats.filter(s => s.count > 0);
+      const tableContainer = document.getElementById('monthly-table-container');
+
+      if (activeMonths.length === 0) {
+        tableContainer.innerHTML = `<p class="text-xs text-slate-500 dark:text-slate-400 text-center py-2">Inga resor registrerade under ${selectedYear}.</p>`;
+      } else {
+        const rowsHtml = activeMonths.map(s => `
+          <tr onclick="selectMonthFromChart(${selectedYear}, ${s.monthIndex})"
+              class="border-b border-slate-100 dark:border-[#334155]/70 last:border-0 hover:bg-slate-50 dark:hover:bg-[#1b2536] cursor-pointer">
+            <td class="py-2 font-semibold text-slate-800 dark:text-slate-200">${s.label} ${selectedYear}</td>
+            <td class="py-2 text-right text-accent font-semibold">${s.workKm} km</td>
+            <td class="py-2 text-right text-amber-500 font-semibold">${s.privKm} km</td>
+            <td class="py-2 text-right font-bold text-slate-900 dark:text-white">${s.workKm + s.privKm} km</td>
+          </tr>
+        `).join('');
+
+        tableContainer.innerHTML = `
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-[#334155]">
+                <th class="py-1.5 text-left font-medium">Månad</th>
+                <th class="py-1.5 text-right font-medium">Tjänst</th>
+                <th class="py-1.5 text-right font-medium">Privat</th>
+                <th class="py-1.5 text-right font-medium">Totalt</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        `;
+      }
     }
 
-    // Rendera månadsöversikten med total, tjänste- och privatsträcka per månad
-    function renderMonthlyOverview() {
-      const container = document.getElementById('monthly-overview-list');
-      const months = getAvailableMonths();
-
-      if (months.length === 0) {
-        container.innerHTML = `
-          <div class="text-center text-slate-500 dark:text-slate-300 py-8 px-4 text-sm bg-slate-50 dark:bg-[#1e293b] border border-dashed border-slate-300 dark:border-[#3e4c63] rounded-xl">
-            Inga resor registrerade ännu att visa per månad.
-          </div>
-        `;
+    // Exportera äkta .xlsx med sammanställning centrerad mot mitten
+    function exportExcel() {
+      const exportToast = document.getElementById('export-toast-box');
+      if (typeof XLSX === 'undefined') {
+        exportToast.className = 'rounded-xl p-3 text-xs font-medium border bg-red-500/15 text-red-500 border-red-500/30';
+        exportToast.textContent = 'Excel-biblioteket kunde inte laddas. Kontrollera internetanslutningen och ladda om sidan.';
+        exportToast.classList.remove('hidden');
         return;
       }
 
-      container.innerHTML = months.map(ym => {
-        const monthTrips = trips.filter(t => t.date.startsWith(ym));
-        let total = 0, work = 0, priv = 0;
-        monthTrips.forEach(t => {
-          const dist = Number(t.distance);
-          total += dist;
-          if (t.type === 'Tjänst') work += dist;
-          else priv += dist;
-        });
+      const scope = document.getElementById('export-scope').value;
+      const selectedMonth = document.getElementById('export-month').value;
+      const selectedYear = document.getElementById('chart-year-select').value;
 
-        return `
-          <div onclick="selectMonthForExport('${ym}')" title="Klicka för att välja ${formatMonthLabel(ym)} för export"
-            class="bg-slate-50 dark:bg-[#1e293b] hover:border-accent border border-slate-200 dark:border-[#3e4c63] rounded-xl p-4 transition-colors cursor-pointer">
-            <div class="flex justify-between items-center mb-2.5">
-              <div>
-                <div class="font-semibold text-sm sm:text-base text-slate-900 dark:text-slate-100">${formatMonthLabel(ym)}</div>
-                <div class="text-xs text-slate-500 dark:text-slate-300">${monthTrips.length} registrerade resor</div>
-              </div>
-              <div class="text-right">
-                <div class="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-50 tabular-nums">${total} km</div>
-                <div class="text-[11px] text-slate-500 dark:text-slate-300 uppercase tracking-wider font-medium">Totalt</div>
-              </div>
-            </div>
+      let filteredTrips = [...trips];
+      let periodLabel = 'Alla resor';
+      let fileSuffix = 'alla-resor';
 
-            <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-slate-200 dark:border-[#3e4c63] text-xs sm:text-sm">
-              <div class="flex justify-between items-center bg-white dark:bg-[#293548] px-3 py-2 rounded-lg border border-slate-200/80 dark:border-[#3e4c63]">
-                <span class="text-slate-500 dark:text-slate-300">Tjänst:</span>
-                <strong class="font-semibold text-accent tabular-nums">${work} km</strong>
-              </div>
-              <div class="flex justify-between items-center bg-white dark:bg-[#293548] px-3 py-2 rounded-lg border border-slate-200/80 dark:border-[#3e4c63]">
-                <span class="text-slate-500 dark:text-slate-300">Privat:</span>
-                <strong class="font-semibold text-amber-600 dark:text-amber-400 tabular-nums">${priv} km</strong>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
+      if (scope === 'month' && selectedMonth) {
+        filteredTrips = trips.filter(t => t.date && t.date.startsWith(selectedMonth));
+        periodLabel = selectedMonth;
+        fileSuffix = selectedMonth;
+      } else if (scope === 'year' && selectedYear) {
+        filteredTrips = trips.filter(t => t.date && t.date.startsWith(String(selectedYear)));
+        periodLabel = `År ${selectedYear}`;
+        fileSuffix = String(selectedYear);
+      }
 
-    // Bygg Excel-arbetsbok (.xlsx) för vald period
-    function buildExcelWorkbook(filteredTrips, selectedMonth) {
-      let workKm = 0, privKm = 0, totalKm = 0;
-      let workCount = 0, privCount = 0;
+      if (filteredTrips.length === 0) {
+        exportToast.className = 'rounded-xl p-3 text-xs font-medium border bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/30';
+        exportToast.textContent = 'Det finns inga registrerade resor för den valda perioden.';
+        exportToast.classList.remove('hidden');
+        return;
+      }
+
+      // Sortera kronologiskt inför export
+      filteredTrips.sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.odoStart - b.odoStart);
+
+      let workKm = 0;
+      let workCount = 0;
+      let privKm = 0;
+      let privCount = 0;
 
       filteredTrips.forEach(t => {
-        const dist = Number(t.distance);
-        totalKm += dist;
+        const d = Number(t.distance) || 0;
         if (t.type === 'Tjänst') {
-          workKm += dist;
-          workCount++;
+          workKm += d;
+          workCount += 1;
         } else {
-          privKm += dist;
-          privCount++;
+          privKm += d;
+          privCount += 1;
         }
       });
 
-      const periodLabel = selectedMonth === 'all'
-        ? 'Alla månader'
-        : formatMonthLabel(selectedMonth);
+      const totalKm = workKm + privKm;
 
       const aoa = [
-        ['Datum', 'Typ', 'Startmätare (km)', 'Slutmätare (km)', 'Sträcka (km)', 'Från', 'Till', 'Ändamål']
+        ['Datum', 'Typ', 'Startmätare (km)', 'Slutmätare (km)', 'Sträcka (km)', 'Från', 'Via', 'Till', 'Ändamål']
       ];
 
       filteredTrips.forEach(t => {
@@ -1119,13 +1227,18 @@
           Number(t.odoEnd),
           Number(t.distance),
           t.startAddr || '-',
+          t.viaAddr || '-',
           t.endAddr || '-',
           t.purpose || ''
         ]);
       });
 
       // Tom rad och sedan sammanställningen centrerad mot mitten (kolumn C, D, E)
+      const savedRegNr = (localStorage.getItem(REGNR_KEY) || '').trim();
       aoa.push([]);
+      if (savedRegNr) {
+        aoa.push(['', '', `Fordon (Reg.nr): ${savedRegNr}`, '', '']);
+      }
       aoa.push(['', '', `Sammanställning (${periodLabel})`, 'Antal resor', 'Körsträcka (km)']);
       aoa.push(['', '', 'Tjänsteresor', workCount, workKm]);
       aoa.push(['', '', 'Privatresor', privCount, privKm]);
@@ -1139,132 +1252,123 @@
         { wch: 18 }, // D: Slutmätare / Antal resor
         { wch: 16 }, // E: Sträcka (km) / Körsträcka (km)
         { wch: 24 }, // F: Från
-        { wch: 24 }, // G: Till
-        { wch: 32 }  // H: Ändamål
+        { wch: 24 }, // G: Via
+        { wch: 24 }, // H: Till
+        { wch: 32 }  // I: Ändamål
       ];
 
       const workbook = XLSX.utils.book_new();
-      const sheetName = selectedMonth === 'all' ? 'Körjournal' : formatMonthLabel(selectedMonth);
-      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Körjournal');
+      XLSX.writeFile(workbook, `korjournal-${fileSuffix}.xlsx`);
 
-      const fileSuffix = selectedMonth === 'all'
-        ? new Date().toISOString().split('T')[0]
-        : selectedMonth;
-
-      return {
-        workbook,
-        filename: `korjournal_${fileSuffix}.xlsx`
-      };
+      exportToast.className = 'rounded-xl p-3 text-xs font-medium border bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
+      exportToast.textContent = `Filen korjournal-${fileSuffix}.xlsx har laddats ner!`;
+      exportToast.classList.remove('hidden');
     }
 
-    // Exportera vald månad eller alla resor som äkta .xlsx-fil med sammanställningen centrerad mot mitten
-    function exportExcel() {
-      const selectedMonth = document.getElementById('export-month-select').value;
-      const filteredTrips = getFilteredTrips();
-
-      if (filteredTrips.length === 0) {
-        showExportFeedback('Det finns inga resor att exportera för vald period.', 'error');
-        return;
-      }
-
-      if (typeof XLSX === 'undefined') {
-        showExportFeedback('Excel-biblioteket kunde inte laddas. Kontrollera internetanslutningen.', 'error');
-        return;
-      }
-
-      const { workbook, filename } = buildExcelWorkbook(filteredTrips, selectedMonth);
-      XLSX.writeFile(workbook, filename);
-      showExportFeedback(`Excel-filen "${filename}" har laddats ner.`);
+    // XSS-skydd för text
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
-    // Rendera översiktskort, export-sammanställning och lista
+    // Rendera summering och reselista
     function render() {
-      const listEl = document.getElementById('trip-list');
-      let totalKm = 0, workKm = 0, privKm = 0;
+      let totalKm = 0;
+      let workKm = 0;
+      let privKm = 0;
 
       trips.forEach(t => {
-        totalKm += Number(t.distance);
-        if (t.type === 'Tjänst') workKm += Number(t.distance);
-        else privKm += Number(t.distance);
+        const d = Number(t.distance) || 0;
+        totalKm += d;
+        if (t.type === 'Tjänst') workKm += d;
+        else privKm += d;
       });
 
       document.getElementById('stat-total').textContent = `${totalKm} km`;
       document.getElementById('stat-work').textContent = `${workKm} km`;
-      document.getElementById('stat-priv').textContent = `${privKm} km`;
+      document.getElementById('stat-private').textContent = `${privKm} km`;
       document.getElementById('trip-count').textContent = `${trips.length} st`;
 
-      updateMonthDropdown();
-      updateChartYearDropdown();
-
+      const listEl = document.getElementById('trips-list');
       if (trips.length === 0) {
         listEl.innerHTML = `
-          <div class="text-center text-slate-500 dark:text-slate-300 py-10 px-4 text-sm bg-white dark:bg-[#293548] border border-dashed border-slate-300 dark:border-[#3e4c63] rounded-xl">
-            Inga resor registrerade ännu. Fyll i formuläret ovan för att börja.
+          <div class="bg-white dark:bg-[#232f42] rounded-2xl p-8 text-center border border-slate-200 dark:border-[#334155]">
+            <p class="text-sm font-medium text-slate-600 dark:text-slate-300">Inga resor registrerade ännu.</p>
+            <p class="text-xs text-slate-400 dark:text-slate-400 mt-1">Fyll i mätarställningen ovan för att logga din första resa.</p>
           </div>
         `;
-      } else {
-        listEl.innerHTML = trips.map(t => {
-          const hasRoute = t.startAddr || t.endAddr;
-          const routeMarkup = hasRoute
-            ? `${escapeHTML(t.startAddr)} <span class="text-slate-400 dark:text-slate-400 mx-1">→</span> ${escapeHTML(t.endAddr)}`
-            : `<span class="text-slate-700 dark:text-slate-200">Privatresa</span>`;
-
-          return `
-            <article class="bg-white dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] rounded-xl p-4 flex justify-between items-start gap-3 shadow-sm transition-colors">
-              <div class="min-w-0 flex-1">
-                <div class="text-xs text-slate-500 dark:text-slate-300 mb-1">${escapeHTML(t.date)}</div>
-                <div class="font-semibold text-sm sm:text-base text-slate-900 dark:text-slate-100 truncate">
-                  ${routeMarkup}
-                </div>
-                ${t.purpose ? `<div class="text-xs sm:text-sm text-slate-600 dark:text-slate-200 mt-0.5">${escapeHTML(t.purpose)}</div>` : ''}
-                <div class="text-xs text-slate-500 dark:text-slate-300 mt-2 tabular-nums">
-                  Mätare: ${t.odoStart} – ${t.odoEnd} km
-                </div>
-              </div>
-
-              <div class="text-right shrink-0 flex flex-col items-end">
-                <span class="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-md mb-1.5 ${
-                  t.type === 'Tjänst'
-                    ? 'bg-accent-soft text-accent border border-accent'
-                    : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
-                }">
-                  ${escapeHTML(t.type)}
-                </span>
-                <div class="text-base font-bold text-slate-900 dark:text-slate-50 tabular-nums">${t.distance} km</div>
-                <div class="flex items-center gap-2.5 mt-2">
-                  <button type="button" onclick="editTrip(${t.id})"
-                    class="text-xs text-slate-500 dark:text-slate-300 hover:text-accent py-1 px-1 transition-colors cursor-pointer">
-                    Redigera
-                  </button>
-                  <button type="button" onclick="deleteTrip(${t.id})"
-                    class="text-xs text-slate-500 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 py-1 px-1 transition-colors cursor-pointer">
-                    Ta bort
-                  </button>
-                </div>
-              </div>
-            </article>
-          `;
-        }).join('');
+        return;
       }
 
-      renderMonthlyChart();
-      renderMonthlyOverview();
+      listEl.innerHTML = trips.map(t => {
+        const isWork = t.type === 'Tjänst';
+        const badgeStyle = isWork
+          ? 'bg-accent-soft text-accent'
+          : 'bg-amber-500/15 text-amber-600 dark:text-amber-400';
+
+        const hasRoute = t.startAddr || t.endAddr;
+        let routeMarkup = `<span class="text-slate-700 dark:text-slate-200">Privatresa</span>`;
+        if (hasRoute) {
+          if (t.viaAddr) {
+            routeMarkup = `${escapeHTML(t.startAddr)} <span class="text-slate-400 mx-1">→</span> <span class="text-accent font-medium">${escapeHTML(t.viaAddr)}</span> <span class="text-slate-400 mx-1">→</span> ${escapeHTML(t.endAddr)}`;
+          } else {
+            routeMarkup = `${escapeHTML(t.startAddr)} <span class="text-slate-400 mx-1">→</span> ${escapeHTML(t.endAddr)}`;
+          }
+        }
+
+        return `
+          <article class="bg-white dark:bg-[#232f42] rounded-2xl p-4 border border-slate-200 dark:border-[#334155] shadow-sm space-y-2.5">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold ${badgeStyle}">${escapeHTML(t.type)}</span>
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">${escapeHTML(t.date)}</span>
+              </div>
+              <span class="text-sm font-bold text-slate-900 dark:text-white">${t.distance} km</span>
+            </div>
+
+            <div class="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-snug">
+              ${routeMarkup}
+            </div>
+
+            ${t.purpose ? `<p class="text-xs text-slate-600 dark:text-slate-300">${escapeHTML(t.purpose)}</p>` : ''}
+
+            <div class="pt-2 border-t border-slate-100 dark:border-[#334155]/80 flex items-center justify-between gap-2">
+              <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                Mätare: ${t.odoStart} – ${t.odoEnd} km
+              </span>
+
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="editTrip(${t.id})"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-[#2d3b52] text-slate-700 dark:text-slate-200 hover:border-accent border border-transparent transition-colors cursor-pointer">
+                  Redigera
+                </button>
+                <button type="button" onclick="confirmDeleteTrip(${t.id})"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors cursor-pointer">
+                  Ta bort
+                </button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
     }
 
-    function escapeHTML(str) {
-      return String(str).replace(/[&<>'"]/g, tag => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-      }[tag]));
-    }
-
-    // Registrera Service Worker när sidan körs över HTTPS / localhost
-    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+    // Registrera Service Worker för PWA
+    if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(() => {});
       });
     }
 
+    // Starta appen
     initThemeAndColors();
+    loadData();
     initForm();
     render();
   </script>
