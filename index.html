@@ -648,7 +648,13 @@
     function loadData() {
       try {
         const savedTrips = localStorage.getItem(STORAGE_KEY);
-        trips = savedTrips !== null ? JSON.parse(savedTrips) : SAMPLE_TRIPS;
+        const parsedTrips = savedTrips !== null ? JSON.parse(savedTrips) : SAMPLE_TRIPS;
+        trips = Array.isArray(parsedTrips)
+          ? parsedTrips.map((t, idx) => ({
+              ...t,
+              id: t && t.id !== undefined && t.id !== null && String(t.id) !== '' ? String(t.id) : `trip-legacy-${Date.now()}-${idx}`
+            }))
+          : SAMPLE_TRIPS;
       } catch (e) {
         trips = SAMPLE_TRIPS;
       }
@@ -1232,7 +1238,7 @@
       }
 
       if (editingTripId) {
-        const index = trips.findIndex(t => t.id === editingTripId);
+        const index = trips.findIndex(t => String(t.id) === String(editingTripId));
         if (index !== -1) {
           const editedDate = document.getElementById('edit-date').value || trips[index].date;
           trips[index] = {
@@ -1280,10 +1286,10 @@
 
     // Redigera resa
     function startEditTrip(id) {
-      const trip = trips.find(t => t.id === id);
+      const trip = trips.find(t => String(t.id) === String(id));
       if (!trip) return;
 
-      editingTripId = id;
+      editingTripId = String(trip.id);
       switchTab('register');
       document.getElementById('form-title').textContent = 'Redigera resa';
       document.getElementById('submit-btn').textContent = 'Uppdatera resa';
@@ -1332,10 +1338,10 @@
 
     // Ta bort resa med bekräftelsedialog
     function askDeleteTrip(id) {
-      const trip = trips.find(t => t.id === id);
+      const trip = trips.find(t => String(t.id) === String(id));
       if (!trip) return;
 
-      pendingDeleteTripId = id;
+      pendingDeleteTripId = String(trip.id);
       const dist = Math.max(0, (Number(trip.odoEnd) || 0) - (Number(trip.odoStart) || 0));
       const routeText = trip.type === 'Tjänst' && (trip.startAddr || trip.endAddr)
         ? `${trip.startAddr || '—'} → ${trip.endAddr || '—'}`
@@ -1358,13 +1364,13 @@
 
     function confirmDeleteTrip() {
       if (!pendingDeleteTripId) return;
-      const id = pendingDeleteTripId;
+      const id = String(pendingDeleteTripId);
       closeDeleteModal();
 
-      if (editingTripId === id) {
+      if (String(editingTripId) === id) {
         cancelEdit();
       }
-      trips = trips.filter(t => t.id !== id);
+      trips = trips.filter(t => String(t.id) !== id);
       saveTrips();
       renderTrips();
       renderMonthlyOverview();
@@ -1444,12 +1450,12 @@
               </span>
 
               <div class="flex items-center gap-3">
-                <button type="button" onclick="startEditTrip('${trip.id}')"
-                  class="font-semibold text-accent hover:underline cursor-pointer">
+                <button type="button" data-action="edit" data-trip-id="${escapeHtml(trip.id)}"
+                  class="py-1 px-2 -mx-2 rounded-lg font-semibold text-accent hover:underline cursor-pointer">
                   Redigera
                 </button>
-                <button type="button" onclick="askDeleteTrip('${trip.id}')"
-                  class="font-semibold text-red-500 hover:text-red-600 dark:text-red-400 hover:underline cursor-pointer">
+                <button type="button" data-action="delete" data-trip-id="${escapeHtml(trip.id)}"
+                  class="py-1 px-2 -mx-2 rounded-lg font-semibold text-red-500 hover:text-red-600 dark:text-red-400 hover:underline cursor-pointer">
                   Ta bort
                 </button>
               </div>
@@ -1871,6 +1877,21 @@
       suggestNextOdometer();
       renderTrips();
       setupShortWordAutoCaps();
+
+      const tripsListEl = document.getElementById('trips-list');
+      if (tripsListEl) {
+        tripsListEl.addEventListener('click', (e) => {
+          const btn = e.target.closest('button[data-action]');
+          if (!btn) return;
+          const tripId = btn.getAttribute('data-trip-id');
+          const action = btn.getAttribute('data-action');
+          if (action === 'edit') {
+            startEditTrip(tripId);
+          } else if (action === 'delete') {
+            askDeleteTrip(tripId);
+          }
+        });
+      }
 
       const now = new Date();
       const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
