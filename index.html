@@ -39,7 +39,7 @@
     }
   </script>
 
-  <!-- SheetJS för äkta .xlsx-export -->
+  <!-- SheetJS för .xlsx-export och import -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
   <style>
@@ -83,7 +83,7 @@
         <div>
           <div class="flex items-center gap-1.5">
             <h1 class="text-base font-bold tracking-tight leading-tight">Körjournal</h1>
-            <span id="header-reg-nr" class="hidden text-base font-bold tracking-tight leading-tight uppercase"></span>
+            <span id="header-reg-nr" class="hidden text-xs font-extrabold px-2 py-0.5 rounded-md bg-accent-soft text-accent border border-accent/20 tracking-wider uppercase"></span>
           </div>
           <p id="header-subtitle" class="text-[11px] text-slate-500 dark:text-slate-400">Lokal &amp; privat logg</p>
         </div>
@@ -321,21 +321,21 @@
         <div class="flex items-center justify-between gap-2 mb-4">
           <h2 id="form-title" class="text-base font-bold text-slate-900 dark:text-white">Registrera resa</h2>
           <div class="flex items-center gap-2">
-            <button type="button" onclick="toggleFavoritesModal(true)" title="Lägg till eller redigera favoriter"
-              class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] text-slate-700 dark:text-slate-200 hover:border-accent transition-colors cursor-pointer">
+            <button type="button" onclick="toggleFavoritesModal(true)" title="Hantera favoriter"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] hover:border-accent px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer">
               <svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
               </svg>
               <span>Favoriter</span>
             </button>
             <button type="button" id="cancel-edit-btn" onclick="cancelEdit()"
-              class="hidden text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-[#2f3d54] text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+              class="hidden text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-[#2f3d54] cursor-pointer">
               Avbryt
             </button>
           </div>
         </div>
 
-        <form id="trip-form" class="space-y-4">
+        <form id="trip-form" novalidate class="space-y-4">
           <!-- Datumfält (visas endast vid redigering av befintlig resa) -->
           <div id="edit-date-wrapper" class="hidden">
             <label for="edit-date" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Datum</label>
@@ -345,12 +345,48 @@
 
           <!-- Typ av resa -->
           <div>
-            <label for="type" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Typ av resa</label>
-            <select id="type" onchange="handleTripTypeChange()"
-              class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-semibold focus:outline-none focus:border-accent transition-colors">
-              <option value="Tjänst">Tjänsteresa</option>
-              <option value="Privat">Privatresa</option>
-            </select>
+            <span class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Typ av resa</span>
+            <input type="hidden" id="type" value="Tjänst">
+            <div class="grid grid-cols-2 gap-2.5" role="group" aria-label="Typ av resa">
+              <button type="button" id="btn-type-work" onclick="setTripType('Tjänst')" aria-pressed="true"
+                class="py-2.5 px-3 rounded-lg text-sm font-bold border-2 border-accent bg-accent text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                Tjänsteresa
+              </button>
+              <button type="button" id="btn-type-private" onclick="setTripType('Privat')" aria-pressed="false"
+                class="py-2.5 px-3 rounded-lg text-sm font-bold border-2 border-slate-300 dark:border-[#4b5b76] bg-slate-50 dark:bg-[#161f2e] text-slate-700 dark:text-slate-300 hover:border-slate-400 transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                Privatresa
+              </button>
+            </div>
+          </div>
+
+          <!-- Automatisk tidtagning för aktiv resa -->
+          <div id="active-trip-banner" class="bg-slate-100/90 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] rounded-lg px-3.5 py-2.5 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span id="trip-timer-dot" class="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0"></span>
+              <div class="min-w-0">
+                <p id="trip-timer-status" class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">Ingen pågående resa</p>
+                <p id="trip-timer-sub" class="text-[11px] text-slate-500 dark:text-slate-400 truncate">Tryck på Starta resa längst ner för att sätta starttid</p>
+              </div>
+            </div>
+            <button type="button" id="reset-trip-timer-btn" onclick="resetActiveTrip(true)" title="Nollställ pågående resa"
+              class="hidden px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-[#293548] text-slate-700 dark:text-slate-200 hover:text-red-500 text-xs font-semibold transition-colors cursor-pointer shrink-0">
+              Avbryt
+            </button>
+          </div>
+
+          <!-- Redigerbara tidsfält (visas endast vid redigering av befintlig resa) -->
+          <div id="edit-time-wrapper" class="hidden grid grid-cols-2 gap-3">
+            <div>
+              <label for="start-time" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Starttid</label>
+              <input type="time" id="start-time"
+                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-semibold focus:outline-none focus:border-accent transition-colors">
+            </div>
+
+            <div>
+              <label for="end-time" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Sluttid</label>
+              <input type="time" id="end-time"
+                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-semibold focus:outline-none focus:border-accent transition-colors">
+            </div>
           </div>
 
           <!-- Fokuserad sektion för mätarställning -->
@@ -368,14 +404,14 @@
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label for="odo-start" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">Start (km)</label>
-                <input type="number" id="odo-start" inputmode="numeric" required placeholder="45000"
+                <input type="number" id="odo-start" inputmode="numeric" placeholder="45000"
                   oninput="updateLiveDistance()"
                   class="w-full bg-white dark:bg-[#232f42] border-2 border-slate-400 dark:border-[#5b6e8c] focus:border-accent text-slate-900 dark:text-white px-3 py-3 rounded-lg text-xl sm:text-2xl font-extrabold tracking-tight text-center shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all">
               </div>
 
               <div>
                 <label for="odo-end" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">Slut (km)</label>
-                <input type="number" id="odo-end" inputmode="numeric" required placeholder="45050"
+                <input type="number" id="odo-end" inputmode="numeric" placeholder="45050"
                   oninput="updateLiveDistance()"
                   class="w-full bg-white dark:bg-[#232f42] border-2 border-slate-400 dark:border-[#5b6e8c] focus:border-accent text-slate-900 dark:text-white px-3 py-3 rounded-lg text-xl sm:text-2xl font-extrabold tracking-tight text-center shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all">
               </div>
@@ -396,7 +432,7 @@
                   </svg>
                 </button>
               </div>
-              <input type="text" id="start-addr" placeholder="Från" required
+              <input type="text" id="start-addr" placeholder="Från"
                 class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-medium focus:outline-none focus:border-accent transition-colors">
               <div id="fav-dropdown-start" class="mt-1.5"></div>
             </div>
@@ -413,7 +449,7 @@
                   </svg>
                 </button>
               </div>
-              <input type="text" id="end-addr" placeholder="Till" required
+              <input type="text" id="end-addr" placeholder="Till"
                 class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-medium focus:outline-none focus:border-accent transition-colors">
               <div id="fav-dropdown-end" class="mt-1.5"></div>
             </div>
@@ -454,7 +490,7 @@
           <!-- Ändamål (döljs vid privatresa) -->
           <div id="purpose-wrapper">
             <div class="flex justify-between items-center mb-1.5">
-              <label for="purpose" class="block text-xs font-semibold text-slate-700 dark:text-slate-200">Ändamål / Anteckning</label>
+              <label for="purpose" class="block text-xs font-semibold text-slate-700 dark:text-slate-200">Ändamål / Anteckning (valfritt)</label>
               <button type="button" onclick="savePurposeFavorite()" title="Spara som favorit" aria-label="Spara ändamål som favorit"
                 class="p-1 rounded-md text-accent hover:bg-accent-soft transition-colors cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -464,15 +500,15 @@
                 </svg>
               </button>
             </div>
-            <input type="text" id="purpose" placeholder="T.ex. Kundmöte, leverans..." required
+            <input type="text" id="purpose" placeholder="T.ex. Kundmöte, leverans..."
               class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-medium focus:outline-none focus:border-accent transition-colors">
             <div id="fav-dropdown-purpose" class="mt-1.5"></div>
           </div>
 
-          <!-- Spara-knapp -->
+          <!-- Spara-knapp (Starta resa -> Avsluta & spara resa) -->
           <button type="submit" id="submit-btn"
             class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 px-4 rounded-lg text-sm shadow-sm transition-colors cursor-pointer">
-            Spara resa
+            Starta resa
           </button>
         </form>
       </section>
@@ -599,78 +635,80 @@
     const STORAGE_KEY = 'korjournal_trips_v1';
     const FAVORITES_KEY = 'korjournal_favorites_v1';
     const PURPOSE_FAVORITES_KEY = 'korjournal_purpose_favorites_v1';
+    const ACTIVE_TRIP_KEY = 'korjournal_active_trip_v1';
     const THEME_KEY = 'korjournal_theme_v1';
     const ACCENT_KEY = 'korjournal_accent_v1';
     const BG_TONE_KEY = 'korjournal_bg_tone_v1';
     const FONT_KEY = 'korjournal_font_v1';
     const REG_NR_KEY = 'korjournal_reg_nr_v1';
 
-    const BG_TONES = {
-      slate: { light: '#f1f5f9', dark: '#182232' },
-      midnight: { light: '#e4e4e7', dark: '#0f172a' },
-      warm: { light: '#f5f5f4', dark: '#1f1d1b' },
-      forest: { light: '#ecfdf5', dark: '#13221f' }
-    };
-
-    // Exempelresor första gången appen öppnas
-    const SAMPLE_TRIPS = [
-      {
-        id: 'sample-1',
-        date: new Date().toISOString().split('T')[0],
-        type: 'Tjänst',
-        startAddr: 'Kontoret, Stockholm',
-        viaAddr: '',
-        endAddr: 'Kundbesök, Solna',
-        odoStart: 45120,
-        odoEnd: 45148,
-        purpose: 'Projektmöte'
-      },
-      {
-        id: 'sample-2',
-        date: new Date().toISOString().split('T')[0],
-        type: 'Privat',
-        startAddr: '',
-        viaAddr: '',
-        endAddr: '',
-        odoStart: 45148,
-        odoEnd: 45175,
-        purpose: 'Privatresa'
-      }
-    ];
-
     let trips = [];
     let favorites = [];
     let purposeFavorites = [];
+    let activeTrip = null;
+    let activeTripInterval = null;
     let editingTripId = null;
     let pendingDeleteTripId = null;
+    let currentTab = 'register';
 
-    // Ladda sparad data
+    // Ladda och spara data i localStorage
     function loadData() {
       try {
         const savedTrips = localStorage.getItem(STORAGE_KEY);
-        const parsedTrips = savedTrips !== null ? JSON.parse(savedTrips) : SAMPLE_TRIPS;
-        trips = Array.isArray(parsedTrips)
-          ? parsedTrips.map((t, idx) => ({
-              ...t,
-              id: t && t.id !== undefined && t.id !== null && String(t.id) !== '' ? String(t.id) : `trip-legacy-${Date.now()}-${idx}`
-            }))
-          : SAMPLE_TRIPS;
+        if (savedTrips) {
+          const parsed = JSON.parse(savedTrips);
+          trips = Array.isArray(parsed)
+            ? parsed.map((t, i) => ({ ...t, id: String(t.id || `trip-${Date.now()}-${i}`) }))
+            : [];
+        } else {
+          // Exempelresor första gången appen öppnas
+          const today = new Date().toISOString().split('T')[0];
+          trips = [
+            {
+              id: 'trip-demo-1',
+              date: today,
+              startTime: '08:15',
+              endTime: '08:55',
+              type: 'Tjänst',
+              startAddr: 'Kontoret, Stockholm',
+              viaAddr: '',
+              endAddr: 'Kund AB, Solna',
+              odoStart: 45120,
+              odoEnd: 45148,
+              purpose: 'Kundmöte & projektering'
+            },
+            {
+              id: 'trip-demo-2',
+              date: today,
+              startTime: '17:10',
+              endTime: '17:35',
+              type: 'Privat',
+              startAddr: '',
+              viaAddr: '',
+              endAddr: '',
+              odoStart: 45148,
+              odoEnd: 45164,
+              purpose: 'Privatresa'
+            }
+          ];
+          saveTrips();
+        }
       } catch (e) {
-        trips = SAMPLE_TRIPS;
+        trips = [];
       }
 
       try {
         const savedFavs = localStorage.getItem(FAVORITES_KEY);
-        favorites = savedFavs !== null ? JSON.parse(savedFavs) : ['Kontoret, Stockholm', 'Hem'];
+        favorites = savedFavs ? JSON.parse(savedFavs) : ['Hem', 'Kontoret'];
       } catch (e) {
-        favorites = [];
+        favorites = ['Hem', 'Kontoret'];
       }
 
       try {
         const savedPurposeFavs = localStorage.getItem(PURPOSE_FAVORITES_KEY);
-        purposeFavorites = savedPurposeFavs !== null ? JSON.parse(savedPurposeFavs) : ['Kundmöte', 'Leverans', 'Tjänsteärende'];
+        purposeFavorites = savedPurposeFavs ? JSON.parse(savedPurposeFavs) : ['Kundmöte', 'Leverans', 'Serviceärende'];
       } catch (e) {
-        purposeFavorites = [];
+        purposeFavorites = ['Kundmöte', 'Leverans', 'Serviceärende'];
       }
     }
 
@@ -686,111 +724,187 @@
       localStorage.setItem(PURPOSE_FAVORITES_KEY, JSON.stringify(purposeFavorites));
     }
 
-    // Inställningsmodal & Registreringsnummer
+    // Tema, accentfärg, bakgrund, typsnitt och reg-nr
+    const BG_TONES = {
+      slate: { light: '#f1f5f9', dark: '#182232' },
+      midnight: { light: '#e4e4e7', dark: '#0f172a' },
+      warm: { light: '#f5f5f4', dark: '#1f1d1b' },
+      forest: { light: '#ecfdf5', dark: '#13221f' }
+    };
+
+    function applyBgTone(tone) {
+      const config = BG_TONES[tone] || BG_TONES.slate;
+      const isDark = document.documentElement.classList.contains('dark');
+      document.documentElement.style.setProperty('--bg-page', isDark ? config.dark : config.light);
+      document.querySelectorAll('.bg-dot').forEach(btn => {
+        if (btn.dataset.bg === tone) {
+          btn.classList.add('border-accent', 'ring-1', 'ring-accent');
+        } else {
+          btn.classList.remove('border-accent', 'ring-1', 'ring-accent');
+        }
+      });
+    }
+
+    function setBgTone(tone) {
+      localStorage.setItem(BG_TONE_KEY, tone);
+      applyBgTone(tone);
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+      applyBgTone(localStorage.getItem(BG_TONE_KEY) || 'slate');
+    }
+
+    function setAccentColor(accent, hover, soft) {
+      document.documentElement.style.setProperty('--accent', accent);
+      document.documentElement.style.setProperty('--accent-hover', hover);
+      document.documentElement.style.setProperty('--accent-soft', soft);
+      localStorage.setItem(ACCENT_KEY, JSON.stringify({ accent, hover, soft }));
+
+      document.querySelectorAll('.color-dot').forEach(btn => {
+        if (btn.dataset.color === accent) {
+          btn.classList.add('border-accent', 'ring-1', 'ring-accent');
+        } else {
+          btn.classList.remove('border-accent', 'ring-1', 'ring-accent');
+        }
+      });
+    }
+
+    function setAppFont(fontValue) {
+      document.documentElement.style.setProperty('--app-font', fontValue);
+      localStorage.setItem(FONT_KEY, fontValue);
+    }
+
+    function saveRegNr(val) {
+      const cleaned = String(val || '').toUpperCase().trim();
+      localStorage.setItem(REG_NR_KEY, cleaned);
+      const badge = document.getElementById('header-reg-nr');
+      if (badge) {
+        if (cleaned) {
+          badge.textContent = cleaned;
+          badge.classList.remove('hidden');
+        } else {
+          badge.textContent = '';
+          badge.classList.add('hidden');
+        }
+      }
+    }
+
+    function initThemeAndColors() {
+      const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+      if (savedTheme === 'light') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+
+      try {
+        const savedAccent = JSON.parse(localStorage.getItem(ACCENT_KEY));
+        if (savedAccent && savedAccent.accent) {
+          setAccentColor(savedAccent.accent, savedAccent.hover, savedAccent.soft);
+        } else {
+          setAccentColor('#f97316', '#ea580c', 'rgba(249,115,22,0.15)');
+        }
+      } catch (e) {
+        setAccentColor('#f97316', '#ea580c', 'rgba(249,115,22,0.15)');
+      }
+
+      applyBgTone(localStorage.getItem(BG_TONE_KEY) || 'slate');
+
+      const savedFont = localStorage.getItem(FONT_KEY) || "'Plus Jakarta Sans', sans-serif";
+      setAppFont(savedFont);
+      const fontSelect = document.getElementById('font-select');
+      if (fontSelect) fontSelect.value = savedFont;
+
+      const savedRegNr = localStorage.getItem(REG_NR_KEY) || '';
+      const regInput = document.getElementById('reg-nr-input');
+      if (regInput) regInput.value = savedRegNr;
+      saveRegNr(savedRegNr);
+    }
+
+    // Modaler & Fliknavigering
     function toggleSettingsModal(show) {
       const modal = document.getElementById('settings-modal');
       if (!modal) return;
-      modal.classList.toggle('hidden', !show);
+      if (show) modal.classList.remove('hidden');
+      else modal.classList.add('hidden');
     }
-
-    // Favoriter-modal (Lägg till, redigera och ta bort)
-    let editingFavPlaceIdx = null;
-    let editingFavPurposeIdx = null;
 
     function toggleFavoritesModal(show) {
       const modal = document.getElementById('favorites-modal');
       if (!modal) return;
       if (show) {
-        editingFavPlaceIdx = null;
-        editingFavPurposeIdx = null;
         renderManageFavorites();
+        modal.classList.remove('hidden');
+      } else {
+        modal.classList.add('hidden');
       }
-      modal.classList.toggle('hidden', !show);
     }
 
-    function renderManageFavorites() {
-      const placesEl = document.getElementById('manage-fav-places');
-      const purposesEl = document.getElementById('manage-fav-purposes');
+    function switchTab(tab) {
+      currentTab = tab;
+      const regView = document.getElementById('view-register');
+      const expView = document.getElementById('view-export');
+      const regTab = document.getElementById('tab-register');
+      const expTab = document.getElementById('tab-export');
 
-      if (placesEl) {
+      if (tab === 'register') {
+        regView.classList.remove('hidden');
+        expView.classList.add('hidden');
+        regTab.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm';
+        expTab.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white';
+      } else {
+        regView.classList.add('hidden');
+        expView.classList.remove('hidden');
+        expTab.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm';
+        regTab.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white';
+
+        const exportMonthInput = document.getElementById('export-month');
+        if (exportMonthInput && !exportMonthInput.value) {
+          const now = new Date();
+          exportMonthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        }
+        populateChartYears();
+        renderMonthlyOverview();
+        renderTrips();
+      }
+    }
+
+    // Hantera favoriter i modal
+    function renderManageFavorites() {
+      const placesContainer = document.getElementById('manage-fav-places');
+      const purposesContainer = document.getElementById('manage-fav-purposes');
+
+      if (placesContainer) {
         if (favorites.length === 0) {
-          placesEl.innerHTML = `<p class="text-[11px] text-slate-400 italic py-1">Inga favorit-orter sparade</p>`;
+          placesContainer.innerHTML = `<p class="text-[11px] text-slate-400 italic py-1">Inga favorit-orter sparade ännu.</p>`;
         } else {
-          placesEl.innerHTML = favorites.map((fav, idx) => {
-            if (editingFavPlaceIdx === idx) {
-              return `
-                <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#161f2e] border border-accent p-1.5 rounded-lg">
-                  <input type="text" id="edit-fav-place-input-${idx}" value="${escapeHtml(fav)}"
-                    onkeydown="if(event.key === 'Enter'){ event.preventDefault(); saveEditedFavoritePlace(${idx}); } else if(event.key === 'Escape'){ cancelEditFavoritePlace(); }"
-                    class="flex-1 bg-white dark:bg-[#232f42] border border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-white px-2 py-1 rounded text-xs font-medium focus:outline-none focus:border-accent">
-                  <button type="button" onclick="saveEditedFavoritePlace(${idx})" title="Spara"
-                    class="px-2 py-1 rounded bg-accent text-white text-[11px] font-semibold cursor-pointer">
-                    Spara
-                  </button>
-                  <button type="button" onclick="cancelEditFavoritePlace()" title="Avbryt"
-                    class="px-1.5 py-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs cursor-pointer">
-                    ✕
-                  </button>
-                </div>
-              `;
-            }
-            return `
-              <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-[#161f2e] border border-slate-200 dark:border-[#3e4c63] px-2.5 py-1.5 rounded-lg">
-                <span class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">${escapeHtml(fav)}</span>
-                <div class="flex items-center gap-2 shrink-0">
-                  <button type="button" onclick="startEditFavoritePlace(${idx})" title="Redigera ${escapeHtml(fav)}"
-                    class="text-[11px] font-semibold text-accent hover:underline cursor-pointer">
-                    Ändra
-                  </button>
-                  <button type="button" onclick="removeFavoritePlace(${idx})" title="Ta bort ${escapeHtml(fav)}"
-                    class="text-slate-400 hover:text-red-500 dark:hover:text-red-400 text-xs font-bold cursor-pointer">
-                    ✕
-                  </button>
-                </div>
+          placesContainer.innerHTML = favorites.map((item, idx) => `
+            <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-[#161f2e] border border-slate-200 dark:border-[#3e4c63] rounded-lg px-2.5 py-1.5 text-xs">
+              <span class="truncate font-medium text-slate-800 dark:text-slate-200">${escapeHtml(item)}</span>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="editFavoritePlace(${idx})" class="text-[11px] font-semibold text-accent hover:underline cursor-pointer">Ändra</button>
+                <button type="button" onclick="deleteFavoritePlace(${idx})" aria-label="Ta bort" class="text-slate-400 hover:text-red-500 px-1 cursor-pointer">✕</button>
               </div>
-            `;
-          }).join('');
+            </div>
+          `).join('');
         }
       }
 
-      if (purposesEl) {
+      if (purposesContainer) {
         if (purposeFavorites.length === 0) {
-          purposesEl.innerHTML = `<p class="text-[11px] text-slate-400 italic py-1">Inga favorit-ändamål sparade</p>`;
+          purposesContainer.innerHTML = `<p class="text-[11px] text-slate-400 italic py-1">Inga favorit-ändamål sparade ännu.</p>`;
         } else {
-          purposesEl.innerHTML = purposeFavorites.map((fav, idx) => {
-            if (editingFavPurposeIdx === idx) {
-              return `
-                <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#161f2e] border border-accent p-1.5 rounded-lg">
-                  <input type="text" id="edit-fav-purpose-input-${idx}" value="${escapeHtml(fav)}"
-                    onkeydown="if(event.key === 'Enter'){ event.preventDefault(); saveEditedFavoritePurpose(${idx}); } else if(event.key === 'Escape'){ cancelEditFavoritePurpose(); }"
-                    class="flex-1 bg-white dark:bg-[#232f42] border border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-white px-2 py-1 rounded text-xs font-medium focus:outline-none focus:border-accent">
-                  <button type="button" onclick="saveEditedFavoritePurpose(${idx})" title="Spara"
-                    class="px-2 py-1 rounded bg-accent text-white text-[11px] font-semibold cursor-pointer">
-                    Spara
-                  </button>
-                  <button type="button" onclick="cancelEditFavoritePurpose()" title="Avbryt"
-                    class="px-1.5 py-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs cursor-pointer">
-                    ✕
-                  </button>
-                </div>
-              `;
-            }
-            return `
-              <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-[#161f2e] border border-slate-200 dark:border-[#3e4c63] px-2.5 py-1.5 rounded-lg">
-                <span class="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">${escapeHtml(fav)}</span>
-                <div class="flex items-center gap-2 shrink-0">
-                  <button type="button" onclick="startEditFavoritePurpose(${idx})" title="Redigera ${escapeHtml(fav)}"
-                    class="text-[11px] font-semibold text-accent hover:underline cursor-pointer">
-                    Ändra
-                  </button>
-                  <button type="button" onclick="removeFavoritePurpose(${idx})" title="Ta bort ${escapeHtml(fav)}"
-                    class="text-slate-400 hover:text-red-500 dark:hover:text-red-400 text-xs font-bold cursor-pointer">
-                    ✕
-                  </button>
-                </div>
+          purposesContainer.innerHTML = purposeFavorites.map((item, idx) => `
+            <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-[#161f2e] border border-slate-200 dark:border-[#3e4c63] rounded-lg px-2.5 py-1.5 text-xs">
+              <span class="truncate font-medium text-slate-800 dark:text-slate-200">${escapeHtml(item)}</span>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="editFavoritePurpose(${idx})" class="text-[11px] font-semibold text-accent hover:underline cursor-pointer">Ändra</button>
+                <button type="button" onclick="deleteFavoritePurpose(${idx})" aria-label="Ta bort" class="text-slate-400 hover:text-red-500 px-1 cursor-pointer">✕</button>
               </div>
-            `;
-          }).join('');
+            </div>
+          `).join('');
         }
       }
     }
@@ -808,31 +922,24 @@
       renderManageFavorites();
     }
 
-    function startEditFavoritePlace(idx) {
-      editingFavPlaceIdx = idx;
-      renderManageFavorites();
-      const input = document.getElementById(`edit-fav-place-input-${idx}`);
+    function editFavoritePlace(idx) {
+      const current = favorites[idx];
+      if (current === undefined) return;
+      const input = document.getElementById('new-fav-place-input');
       if (input) {
+        input.value = current;
         input.focus();
-        input.select();
       }
-    }
-
-    function cancelEditFavoritePlace() {
-      editingFavPlaceIdx = null;
+      favorites.splice(idx, 1);
+      saveFavorites();
+      renderFavoriteDropdowns();
       renderManageFavorites();
     }
 
-    function saveEditedFavoritePlace(idx) {
-      const input = document.getElementById(`edit-fav-place-input-${idx}`);
-      if (!input) return;
-      const newVal = (input.value || '').trim();
-      if (newVal) {
-        favorites[idx] = newVal;
-        saveFavorites();
-        renderFavoriteDropdowns();
-      }
-      editingFavPlaceIdx = null;
+    function deleteFavoritePlace(idx) {
+      favorites.splice(idx, 1);
+      saveFavorites();
+      renderFavoriteDropdowns();
       renderManageFavorites();
     }
 
@@ -849,248 +956,266 @@
       renderManageFavorites();
     }
 
-    function startEditFavoritePurpose(idx) {
-      editingFavPurposeIdx = idx;
-      renderManageFavorites();
-      const input = document.getElementById(`edit-fav-purpose-input-${idx}`);
+    function editFavoritePurpose(idx) {
+      const current = purposeFavorites[idx];
+      if (current === undefined) return;
+      const input = document.getElementById('new-fav-purpose-input');
       if (input) {
+        input.value = current;
         input.focus();
-        input.select();
       }
-    }
-
-    function cancelEditFavoritePurpose() {
-      editingFavPurposeIdx = null;
-      renderManageFavorites();
-    }
-
-    function saveEditedFavoritePurpose(idx) {
-      const input = document.getElementById(`edit-fav-purpose-input-${idx}`);
-      if (!input) return;
-      const newVal = (input.value || '').trim();
-      if (newVal) {
-        purposeFavorites[idx] = newVal;
-        savePurposeFavorites();
-        renderPurposeFavoriteDropdown();
-      }
-      editingFavPurposeIdx = null;
-      renderManageFavorites();
-    }
-
-    function removeFavoritePlace(index) {
-      if (index < 0 || index >= favorites.length) return;
-      favorites.splice(index, 1);
-      if (editingFavPlaceIdx === index) editingFavPlaceIdx = null;
-      saveFavorites();
-      renderFavoriteDropdowns();
-      renderManageFavorites();
-    }
-
-    function removeFavoritePurpose(index) {
-      if (index < 0 || index >= purposeFavorites.length) return;
-      purposeFavorites.splice(index, 1);
-      if (editingFavPurposeIdx === index) editingFavPurposeIdx = null;
+      purposeFavorites.splice(idx, 1);
       savePurposeFavorites();
       renderPurposeFavoriteDropdown();
       renderManageFavorites();
     }
 
-    function saveRegNr(val) {
-      const cleaned = (val || '').toUpperCase().trim();
-      localStorage.setItem(REG_NR_KEY, cleaned);
-      updateHeaderRegNr(cleaned);
+    function deleteFavoritePurpose(idx) {
+      purposeFavorites.splice(idx, 1);
+      savePurposeFavorites();
+      renderPurposeFavoriteDropdown();
+      renderManageFavorites();
     }
 
-    function updateHeaderRegNr(regNr) {
-      const badge = document.getElementById('header-reg-nr');
-      if (!badge) return;
-      if (regNr) {
-        badge.textContent = `| ${regNr}`;
-        badge.classList.remove('hidden');
-      } else {
-        badge.textContent = '';
-        badge.classList.add('hidden');
+    // Formulärhjälpare (Typ av resa, via-fält, mätarställning)
+    function setTripType(val) {
+      const typeInput = document.getElementById('type');
+      if (typeInput) {
+        typeInput.value = val;
       }
+      handleTripTypeChange();
     }
 
-    // Tema, bakgrund, typsnitt och accentfärger
-    function initThemeAndColors() {
-      const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-
-      const savedBg = localStorage.getItem(BG_TONE_KEY) || 'slate';
-      applyBgTone(savedBg);
-
-      const savedFont = localStorage.getItem(FONT_KEY) || "'Plus Jakarta Sans', sans-serif";
-      applyAppFont(savedFont);
-
-      const savedRegNr = localStorage.getItem(REG_NR_KEY) || '';
-      const regInput = document.getElementById('reg-nr-input');
-      if (regInput) regInput.value = savedRegNr;
-      updateHeaderRegNr(savedRegNr);
-
-      try {
-        const savedAccent = JSON.parse(localStorage.getItem(ACCENT_KEY));
-        if (savedAccent && savedAccent.main) {
-          applyAccent(savedAccent.main, savedAccent.hover, savedAccent.soft);
-          return;
-        }
-      } catch (e) {}
-      applyAccent('#f97316', '#ea580c', 'rgba(249, 115, 22, 0.14)');
-    }
-
-    function toggleTheme() {
-      const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
-      const savedBg = localStorage.getItem(BG_TONE_KEY) || 'slate';
-      applyBgTone(savedBg);
-    }
-
-    function setBgTone(toneKey) {
-      localStorage.setItem(BG_TONE_KEY, toneKey);
-      applyBgTone(toneKey);
-    }
-
-    function applyBgTone(toneKey) {
-      const tone = BG_TONES[toneKey] || BG_TONES.slate;
-      const isDark = document.documentElement.classList.contains('dark');
-      const color = isDark ? tone.dark : tone.light;
-      document.documentElement.style.setProperty('--bg-page', color);
-      document.body.style.backgroundColor = color;
-
-      const metaTheme = document.querySelector('meta[name="theme-color"]');
-      if (metaTheme) metaTheme.setAttribute('content', color);
-
-      document.querySelectorAll('.bg-dot').forEach(btn => {
-        if (btn.dataset.bg === toneKey) {
-          btn.classList.add('ring-2', 'ring-accent', 'border-accent');
-        } else {
-          btn.classList.remove('ring-2', 'ring-accent', 'border-accent');
-        }
-      });
-    }
-
-    function setAppFont(fontValue) {
-      localStorage.setItem(FONT_KEY, fontValue);
-      applyAppFont(fontValue);
-    }
-
-    function applyAppFont(fontValue) {
-      document.documentElement.style.setProperty('--app-font', fontValue);
-      document.body.style.fontFamily = fontValue;
-      const select = document.getElementById('font-select');
-      if (select) select.value = fontValue;
-    }
-
-    function setAccentColor(main, hover, soft) {
-      localStorage.setItem(ACCENT_KEY, JSON.stringify({ main, hover, soft }));
-      applyAccent(main, hover, soft);
-    }
-
-    function applyAccent(main, hover, soft) {
-      document.documentElement.style.setProperty('--accent', main);
-      document.documentElement.style.setProperty('--accent-hover', hover);
-      document.documentElement.style.setProperty('--accent-soft', soft);
-
-      document.querySelectorAll('.color-dot').forEach(dot => {
-        if (dot.dataset.color === main) {
-          dot.classList.add('ring-2', 'ring-accent', 'border-accent');
-        } else {
-          dot.classList.remove('ring-2', 'ring-accent', 'border-accent');
-        }
-      });
-    }
-
-    // Flikväxling
-    function switchTab(tab) {
-      const viewRegister = document.getElementById('view-register');
-      const viewExport = document.getElementById('view-export');
-      const btnRegister = document.getElementById('tab-register');
-      const btnExport = document.getElementById('tab-export');
-
-      if (tab === 'register') {
-        viewRegister.classList.remove('hidden');
-        viewExport.classList.add('hidden');
-        btnRegister.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm';
-        btnExport.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white';
-      } else {
-        viewRegister.classList.add('hidden');
-        viewExport.classList.remove('hidden');
-        btnExport.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm';
-        btnRegister.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white';
-        populateChartYears();
-        renderMonthlyOverview();
-        renderTrips();
-      }
-    }
-
-    // Dölj/visa adress- och ändamålsfält vid Privatresa
     function handleTripTypeChange() {
       const type = document.getElementById('type').value;
       const isPrivate = type === 'Privat';
       const addrWrapper = document.getElementById('address-fields-wrapper');
       const purposeWrapper = document.getElementById('purpose-wrapper');
-      const startInput = document.getElementById('start-addr');
-      const endInput = document.getElementById('end-addr');
-      const purposeInput = document.getElementById('purpose');
+      const workBtn = document.getElementById('btn-type-work');
+      const privateBtn = document.getElementById('btn-type-private');
+
+      if (workBtn && privateBtn) {
+        const inactiveClasses = 'py-2.5 px-3 rounded-lg text-sm font-bold border-2 border-slate-300 dark:border-[#4b5b76] bg-slate-50 dark:bg-[#161f2e] text-slate-700 dark:text-slate-300 hover:border-slate-400 transition-all cursor-pointer flex items-center justify-center gap-1.5';
+        if (isPrivate) {
+          workBtn.className = inactiveClasses;
+          workBtn.setAttribute('aria-pressed', 'false');
+          privateBtn.className = 'py-2.5 px-3 rounded-lg text-sm font-bold border-2 border-amber-500 bg-amber-500 text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5';
+          privateBtn.setAttribute('aria-pressed', 'true');
+        } else {
+          workBtn.className = 'py-2.5 px-3 rounded-lg text-sm font-bold border-2 border-accent bg-accent text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5';
+          workBtn.setAttribute('aria-pressed', 'true');
+          privateBtn.className = inactiveClasses;
+          privateBtn.setAttribute('aria-pressed', 'false');
+        }
+      }
 
       if (isPrivate) {
         addrWrapper.classList.add('hidden');
         purposeWrapper.classList.add('hidden');
-        startInput.required = false;
-        endInput.required = false;
-        purposeInput.required = false;
       } else {
         addrWrapper.classList.remove('hidden');
         purposeWrapper.classList.remove('hidden');
-        startInput.required = true;
-        endInput.required = true;
-        purposeInput.required = true;
       }
     }
 
-    // Visa/dölj valfri via-adress
     function toggleViaField(show) {
-      const toggleRow = document.getElementById('via-toggle-row');
       const container = document.getElementById('via-field-container');
-      const input = document.getElementById('via-addr');
-
+      const toggleRow = document.getElementById('via-toggle-row');
+      const viaInput = document.getElementById('via-addr');
       if (show) {
-        toggleRow.classList.add('hidden');
         container.classList.remove('hidden');
+        toggleRow.classList.add('hidden');
       } else {
-        input.value = '';
         container.classList.add('hidden');
         toggleRow.classList.remove('hidden');
+        if (viaInput) viaInput.value = '';
       }
     }
 
-    // Uppdatera körsträcka live
     function updateLiveDistance() {
-      const start = parseFloat(document.getElementById('odo-start').value);
-      const end = parseFloat(document.getElementById('odo-end').value);
+      const startVal = parseFloat(document.getElementById('odo-start').value);
+      const endVal = parseFloat(document.getElementById('odo-end').value);
       const badge = document.getElementById('live-distance');
-      if (!isNaN(start) && !isNaN(end) && end >= start) {
-        badge.textContent = `Sträcka: ${(end - start).toLocaleString('sv-SE')} km`;
+      if (!badge) return;
+
+      if (!isNaN(startVal) && !isNaN(endVal) && endVal >= startVal) {
+        const diff = endVal - startVal;
+        badge.textContent = `Sträcka: ${diff.toLocaleString('sv-SE')} km`;
       } else {
         badge.textContent = 'Sträcka: 0 km';
       }
     }
 
-    // Föreslå senaste mätarställning som start
     function suggestNextOdometer() {
-      if (editingTripId) return;
+      const odoStartInput = document.getElementById('odo-start');
+      if (!odoStartInput) return;
+
       if (trips.length > 0) {
         const maxOdo = Math.max(...trips.map(t => Number(t.odoEnd) || 0));
         if (maxOdo > 0) {
-          document.getElementById('odo-start').value = maxOdo;
+          odoStartInput.value = maxOdo;
         }
       }
       updateLiveDistance();
+    }
+
+    // Automatisk versalisering för 2- och 3-bokstavsförkortningar (t.ex. AB, IT, ICA, BRF)
+    function setupShortWordAutoCaps() {
+      const smallWords = new Set([
+        'av', 'på', 'om', 'de', 'vi', 'en', 'et', 'är', 'in', 'ut', 'ur', 'åt', 'om', 'nu', 'så', 'då', 'ju', 'ej',
+        'och', 'att', 'för', 'med', 'som', 'det', 'den', 'har', 'kan', 'ska', 'var', 'vid', 'mot', 'hos', 'från',
+        'til', 'bil', 'hem', 'väg', 'ort', 'dag', 'tid', 'ny', 'nya', 'ett', 'men', 'ell', 'sig', 'sin', 'din', 'min'
+      ]);
+
+      const fieldIds = ['start-addr', 'end-addr', 'via-addr', 'purpose'];
+
+      function transformShortWords(text, includeTrailingWord) {
+        return text.replace(/(^|[\s,./()\-–])([a-zåäö]{2,3})(?=$|[\s,./()\-–])/gi, (match, prefix, word, offset) => {
+          const isAtEnd = (offset + match.length) === text.length;
+          if (isAtEnd && !includeTrailingWord) {
+            return match;
+          }
+          const lower = word.toLowerCase();
+          if (smallWords.has(lower)) {
+            return match;
+          }
+          return prefix + word.toUpperCase();
+        });
+      }
+
+      fieldIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener('input', () => {
+          const start = el.selectionStart;
+          const end = el.selectionEnd;
+          const updated = transformShortWords(el.value, false);
+          if (updated !== el.value) {
+            el.value = updated;
+            if (start !== null && end !== null) {
+              el.setSelectionRange(start, end);
+            }
+          }
+        });
+
+        el.addEventListener('blur', () => {
+          const updated = transformShortWords(el.value, true);
+          if (updated !== el.value) {
+            el.value = updated;
+          }
+        });
+      });
+    }
+
+    // Hjälpfunktioner för tidsangivelse & automatisk tidtagning
+    function formatTimeHHMM(dateObj) {
+      return `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function getCurrentTimeStr() {
+      return formatTimeHHMM(new Date());
+    }
+
+    function formatElapsedDuration(ms) {
+      const totalSec = Math.max(0, Math.floor(ms / 1000));
+      const hours = Math.floor(totalSec / 3600);
+      const mins = Math.floor((totalSec % 3600) / 60);
+      const secs = totalSec % 60;
+      if (hours > 0) {
+        return `${hours} tim ${String(mins).padStart(2, '0')} min`;
+      }
+      return `${mins} min ${String(secs).padStart(2, '0')} sek`;
+    }
+
+    function loadActiveTrip() {
+      try {
+        const saved = localStorage.getItem(ACTIVE_TRIP_KEY);
+        activeTrip = saved ? JSON.parse(saved) : null;
+      } catch (e) {
+        activeTrip = null;
+      }
+    }
+
+    function saveActiveTripState() {
+      if (activeTrip) {
+        localStorage.setItem(ACTIVE_TRIP_KEY, JSON.stringify(activeTrip));
+      } else {
+        localStorage.removeItem(ACTIVE_TRIP_KEY);
+      }
+    }
+
+    function startActiveTrip(silent = false) {
+      if (editingTripId) return;
+      const now = new Date();
+      activeTrip = {
+        startedAt: now.getTime(),
+        startTime: formatTimeHHMM(now),
+        date: now.toISOString().split('T')[0]
+      };
+      saveActiveTripState();
+      updateActiveTripUI();
+      if (!silent) {
+        showMessage(`Resa startad kl. ${activeTrip.startTime}. Fyll i slutmätarställning när du är framme.`, 'info', 'form-toast-box');
+      }
+    }
+
+    function resetActiveTrip(notify = false) {
+      activeTrip = null;
+      saveActiveTripState();
+      if (activeTripInterval) {
+        clearInterval(activeTripInterval);
+        activeTripInterval = null;
+      }
+      updateActiveTripUI();
+      if (notify) {
+        showMessage('Pågående tidtagning avbröts.', 'info', 'form-toast-box');
+      }
+    }
+
+    function updateActiveTripUI() {
+      const banner = document.getElementById('active-trip-banner');
+      const dot = document.getElementById('trip-timer-dot');
+      const statusEl = document.getElementById('trip-timer-status');
+      const subEl = document.getElementById('trip-timer-sub');
+      const resetBtn = document.getElementById('reset-trip-timer-btn');
+      const submitBtn = document.getElementById('submit-btn');
+
+      if (!banner) return;
+
+      if (editingTripId) {
+        banner.classList.add('hidden');
+        return;
+      }
+      banner.classList.remove('hidden');
+
+      if (activeTrip && activeTrip.startedAt) {
+        const elapsedMs = Date.now() - activeTrip.startedAt;
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0';
+        statusEl.textContent = `Pågående resa • Startad ${activeTrip.startTime}`;
+        subEl.textContent = `Körtid: ${formatElapsedDuration(elapsedMs)}`;
+        resetBtn.classList.remove('hidden');
+        if (submitBtn) submitBtn.textContent = 'Avsluta & spara resa';
+
+        if (!activeTripInterval) {
+          activeTripInterval = setInterval(() => {
+            if (!activeTrip || editingTripId) return;
+            const diff = Date.now() - activeTrip.startedAt;
+            const sub = document.getElementById('trip-timer-sub');
+            if (sub) sub.textContent = `Körtid: ${formatElapsedDuration(diff)}`;
+          }, 1000);
+        }
+      } else {
+        if (activeTripInterval) {
+          clearInterval(activeTripInterval);
+          activeTripInterval = null;
+        }
+        dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0';
+        statusEl.textContent = 'Ingen pågående resa';
+        subEl.textContent = 'Tryck på Starta resa längst ner för att sätta starttid';
+        resetBtn.classList.add('hidden');
+        if (submitBtn) submitBtn.textContent = 'Starta resa';
+      }
     }
 
     // Meddelanderutor
@@ -1219,6 +1344,12 @@
     document.getElementById('trip-form').addEventListener('submit', function (e) {
       e.preventDefault();
 
+      // Steg 1: Om ingen resa är igång och vi inte redigerar -> starta resan med samma knapp
+      if (!editingTripId && (!activeTrip || !activeTrip.startedAt)) {
+        startActiveTrip(false);
+        return;
+      }
+
       const type = document.getElementById('type').value;
       const isPrivate = type === 'Privat';
       const startAddr = isPrivate ? '' : document.getElementById('start-addr').value.trim();
@@ -1236,14 +1367,22 @@
         showMessage('Slutmätarställningen måste vara högre än startmätarställningen.', 'error', 'form-toast-box');
         return;
       }
+      if (!isPrivate && (!startAddr || !endAddr)) {
+        showMessage('Fyll i både startadress och slutadress för tjänsteresa.', 'error', 'form-toast-box');
+        return;
+      }
 
       if (editingTripId) {
         const index = trips.findIndex(t => String(t.id) === String(editingTripId));
         if (index !== -1) {
           const editedDate = document.getElementById('edit-date').value || trips[index].date;
+          const startTime = document.getElementById('start-time').value || '';
+          const endTime = document.getElementById('end-time').value || '';
           trips[index] = {
             ...trips[index],
             date: editedDate,
+            startTime,
+            endTime,
             type,
             startAddr,
             viaAddr,
@@ -1256,10 +1395,16 @@
         showMessage('Resan har uppdaterats!', 'success', 'form-toast-box');
         cancelEdit(false);
       } else {
-        const todayStr = new Date().toISOString().split('T')[0];
+        const now = new Date();
+        const endTime = formatTimeHHMM(now);
+        const startTime = activeTrip && activeTrip.startTime ? activeTrip.startTime : endTime;
+        const tripDate = activeTrip && activeTrip.date ? activeTrip.date : now.toISOString().split('T')[0];
+
         const newTrip = {
           id: 'trip-' + Date.now(),
-          date: todayStr,
+          date: tripDate,
+          startTime,
+          endTime,
           type,
           startAddr,
           viaAddr,
@@ -1269,7 +1414,8 @@
           purpose
         };
         trips.unshift(newTrip);
-        showMessage(`Resa sparad (${(odoEnd - odoStart).toLocaleString('sv-SE')} km)!`, 'success', 'form-toast-box');
+        resetActiveTrip(false);
+        showMessage(`Resa sparad (${(odoEnd - odoStart).toLocaleString('sv-SE')} km, kl. ${startTime}–${endTime})!`, 'success', 'form-toast-box');
       }
 
       saveTrips();
@@ -1300,8 +1446,14 @@
       editDateWrapper.classList.remove('hidden');
       editDateInput.value = trip.date || new Date().toISOString().split('T')[0];
 
+      document.getElementById('edit-time-wrapper').classList.remove('hidden');
+      updateActiveTripUI();
+
       document.getElementById('type').value = trip.type;
       handleTripTypeChange();
+
+      document.getElementById('start-time').value = trip.startTime || '';
+      document.getElementById('end-time').value = trip.endTime || '';
 
       document.getElementById('start-addr').value = trip.startAddr || '';
       document.getElementById('end-addr').value = trip.endAddr || '';
@@ -1323,9 +1475,10 @@
     function cancelEdit(resetForm = true) {
       editingTripId = null;
       document.getElementById('form-title').textContent = 'Registrera resa';
-      document.getElementById('submit-btn').textContent = 'Spara resa';
       document.getElementById('cancel-edit-btn').classList.add('hidden');
       document.getElementById('edit-date-wrapper').classList.add('hidden');
+      document.getElementById('edit-time-wrapper').classList.add('hidden');
+      updateActiveTripUI();
 
       if (resetForm) {
         document.getElementById('trip-form').reset();
@@ -1431,12 +1584,21 @@
           ? `<p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${escapeHtml(trip.purpose)}</p>`
           : '';
 
+        let timeText = '';
+        if (trip.startTime && trip.endTime) {
+          timeText = ` • ${escapeHtml(trip.startTime)}–${escapeHtml(trip.endTime)}`;
+        } else if (trip.startTime) {
+          timeText = ` • ${escapeHtml(trip.startTime)}`;
+        } else if (trip.endTime) {
+          timeText = ` • –${escapeHtml(trip.endTime)}`;
+        }
+
         return `
           <article class="bg-white dark:bg-[#232f42] rounded-2xl p-4 border border-slate-200 dark:border-[#334155] shadow-xs">
             <div class="flex items-start justify-between gap-2">
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${badgeClass}">${escapeHtml(trip.type)}</span>
-                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">${escapeHtml(trip.date)}</span>
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">${escapeHtml(trip.date)}${timeText}</span>
               </div>
               <span class="text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap">${dist.toLocaleString('sv-SE')} km</span>
             </div>
@@ -1664,6 +1826,8 @@
 
         return {
           'Datum': t.date,
+          'Starttid': t.startTime || '',
+          'Sluttid': t.endTime || '',
           'Typ': t.type,
           'Startadress': t.type === 'Tjänst' ? (t.startAddr || '') : '',
           'Via': t.type === 'Tjänst' ? (t.viaAddr || '') : '',
@@ -1689,7 +1853,7 @@
       const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
 
       wsTrips['!cols'] = [
-        { wch: 12 }, { wch: 10 }, { wch: 24 }, { wch: 20 },
+        { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 24 }, { wch: 20 },
         { wch: 24 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 26 }
       ];
       wsSummary['!cols'] = [{ wch: 24 }, { wch: 20 }];
@@ -1716,7 +1880,6 @@
     function normalizeExcelDate(rawVal) {
       if (!rawVal) return '';
       if (typeof rawVal === 'number') {
-        // Excel-datumserienummer -> YYYY-MM-DD
         const utcDays = Math.floor(rawVal - 25569);
         const dateObj = new Date(utcDays * 86400 * 1000);
         if (!isNaN(dateObj.getTime())) {
@@ -1761,7 +1924,6 @@
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
 
-          // Välj bladet "Körjournal" om det finns, annars första bladet
           const sheetName = workbook.SheetNames.find(n => n.toLowerCase() === 'körjournal') || workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
           const rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
@@ -1777,6 +1939,8 @@
           rawRows.forEach((row, idx) => {
             const rawDate = getRowValueByKeys(row, ['Datum', 'Date']);
             const date = normalizeExcelDate(rawDate);
+            const startTime = String(getRowValueByKeys(row, ['Starttid', 'Start time', 'Tid start'])).trim().slice(0, 5);
+            const endTime = String(getRowValueByKeys(row, ['Sluttid', 'End time', 'Tid slut'])).trim().slice(0, 5);
 
             const rawType = String(getRowValueByKeys(row, ['Typ', 'Type', 'Kategori']) || 'Tjänst').trim();
             const isPrivate = rawType.toLowerCase().startsWith('privat');
@@ -1799,7 +1963,6 @@
               return;
             }
 
-            // Undvik dubbletter (samma datum + samma start- och slutmätare)
             const alreadyExists = trips.some(t =>
               t.date === date &&
               Number(t.odoStart) === odoStartRaw &&
@@ -1817,6 +1980,8 @@
             trips.push({
               id: `trip-imp-${Date.now()}-${idx}`,
               date,
+              startTime,
+              endTime,
               type,
               startAddr,
               viaAddr,
@@ -1828,7 +1993,6 @@
             importedCount++;
           });
 
-          // Läs även in Reg-nr från Sammanställning om det saknas lokalt
           const summarySheetName = workbook.SheetNames.find(n => n.toLowerCase() === 'sammanställning');
           if (summarySheetName && !localStorage.getItem(REG_NR_KEY)) {
             const summaryRows = XLSX.utils.sheet_to_json(workbook.Sheets[summarySheetName], { defval: '' });
@@ -1872,9 +2036,11 @@
     window.addEventListener('DOMContentLoaded', () => {
       initThemeAndColors();
       loadData();
+      loadActiveTrip();
       renderFavoriteDropdowns();
       renderPurposeFavoriteDropdown();
       suggestNextOdometer();
+      updateActiveTripUI();
       renderTrips();
       setupShortWordAutoCaps();
 
@@ -1883,8 +2049,10 @@
         tripsListEl.addEventListener('click', (e) => {
           const btn = e.target.closest('button[data-action]');
           if (!btn) return;
-          const tripId = btn.getAttribute('data-trip-id');
-          const action = btn.getAttribute('data-action');
+          const action = btn.dataset.action;
+          const tripId = btn.dataset.tripId;
+          if (!tripId) return;
+
           if (action === 'edit') {
             startEditTrip(tripId);
           } else if (action === 'delete') {
@@ -1892,76 +2060,7 @@
           }
         });
       }
-
-      const now = new Date();
-      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      const exportMonthEl = document.getElementById('export-month');
-      if (exportMonthEl) exportMonthEl.value = currentMonth;
     });
-
-    // Ändra fristående 2- och 3-bokstavsord till versaler (t.ex. "ab" -> "AB", "ica" -> "ICA", "kth" -> "KTH")
-    function setupShortWordAutoCaps() {
-      const commonShortWords = new Set([
-        // 2 bokstäver
-        'av', 'de', 'du', 'då', 'en', 'er', 'et', 'få', 'gå', 'ha', 'vi', 'ni',
-        'om', 'på', 'se', 'so', 'så', 'ta', 'ut', 'åt', 'är', 'år', 'ju', 'nu',
-        'ej', 'ja', 'jo', 'mä', 'ny', 'ty', 'ur', 'va', 'öa', 'bo', 'ge', 'le',
-        'må', 'ro', 'sy', 'by', 'hö', 'kö', 'mö', 'öar',
-        // 3 bokstäver (vanliga småord, verb & substantiv som inte är förkortningar)
-        'och', 'att', 'det', 'som', 'för', 'med', 'den', 'har', 'kan', 'ska',
-        'var', 'vid', 'mot', 'hos', 'när', 'hur', 'vad', 'vem', 'man', 'sig',
-        'sin', 'din', 'min', 'vår', 'ert', 'oss', 'dem', 'hon', 'han', 'ett',
-        'tre', 'två', 'sju', 'nio', 'tio', 'bra', 'nya', 'nye', 'låg', 'hög',
-        'hem', 'bil', 'väg', 'hus', 'dag', 'tid', 'del', 'par', 'typ', 'fel',
-        'ort', 'bro', 'sjö', 'öst', 'mat', 'bak', 'fram', 'hit', 'dit', 'här',
-        'där', 'mer', 'mst', 'nog', 'väl', 'sen', 'sed', 'får', 'går', 'ser',
-        'tar', 'ger', 'bor', 'dör', 'ler', 'mår', 'ror', 'syr', 'sår', 'vill',
-        'fick', 'gick', 'kom', 'tog', 'såg', 'gav', 'blev', 'bli', 'blir',
-        'alla', 'allt', 'inga', 'inget', 'ena', 'ene', 'vis', 'sätt', 'mål',
-        'tur', 'mil', 'rum', 'sal', 'tak', 'golv', 'dörr', 'port', 'plan',
-        'kaj', 'hamn', 'berg', 'dal', 'äng', 'skogs', 'skog', 'fält', 'park',
-        'tåg', 'buss', 'båt', 'flyg', 'post', 'bank', 'vård', 'tand', 'läk',
-        'barn', 'hund', 'katt', 'fika', 'kaffe', 'lunch', 'middag', 'möte'
-      ]);
-
-      const formatShortWords = (text) => {
-        // Matcha 2 eller 3 bokstäver som är avslutade med mellanslag/skiljetecken eller vid slutet av strängen
-        return text.replace(/(^|[\s,./()-])([a-zåäö]{2,3})(?=[\s,./()-]|$)/gi, (match, prefix, word, offset, fullStr) => {
-          // Vänta med att omvandla om användaren precis skrivit bokstav nr 2 eller 3 längst bak utan mellanslag
-          if (offset + prefix.length + word.length === fullStr.length && document.activeElement?.value === fullStr) {
-            return match;
-          }
-          if (commonShortWords.has(word.toLowerCase())) {
-            return match;
-          }
-          return prefix + word.toUpperCase();
-        });
-      };
-
-      const targetIds = ['start-addr', 'end-addr', 'via-addr', 'purpose'];
-      targetIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-
-        el.addEventListener('input', () => {
-          const start = el.selectionStart;
-          const end = el.selectionEnd;
-          const updated = formatShortWords(el.value);
-          if (updated !== el.value) {
-            el.value = updated;
-            el.setSelectionRange(start, end);
-          }
-        });
-
-        el.addEventListener('blur', () => {
-          // Kör även vid utgång ur fältet så t.ex. "Möte på kth" i slutet av raden blir "Möte på KTH"
-          el.value = el.value.replace(/(^|[\s,./()-])([a-zåäö]{2,3})(?=[\s,./()-]|$)/gi, (match, prefix, word) => {
-            if (commonShortWords.has(word.toLowerCase())) return match;
-            return prefix + word.toUpperCase();
-          });
-        });
-      });
-    }
   </script>
 </body>
 </html>
