@@ -72,25 +72,25 @@
     }
   </style>
 </head>
-<body class="text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200 pb-24">
+<body class="text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200 pb-16">
 
   <!-- Bottenmeny (Fliknavigering & Inställningar) -->
   <nav aria-label="Huvudmeny" class="fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-md border-t border-slate-200 dark:border-[#334155] shadow-lg">
-    <div class="max-w-2xl mx-auto px-4 py-2 flex items-center gap-2">
-      <div class="flex-1 grid grid-cols-2 gap-1.5 bg-slate-100 dark:bg-[#182232] p-1 rounded-xl border border-slate-200 dark:border-[#334155]">
+    <div class="max-w-2xl mx-auto px-3 py-1.5 flex items-center gap-2">
+      <div class="flex-1 grid grid-cols-2 gap-1 bg-slate-100 dark:bg-[#182232] p-1 rounded-xl border border-slate-200 dark:border-[#334155]">
         <button type="button" id="tab-register" onclick="switchTab('register')"
-          class="py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm">
+          class="py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm">
           Registrera
         </button>
         <button type="button" id="tab-export" onclick="switchTab('export')"
-          class="py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
+          class="py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">
           Översikt &amp; Export
         </button>
       </div>
 
       <!-- Inställningsknapp -->
       <button type="button" onclick="toggleSettingsModal(true)" title="Inställningar" aria-label="Inställningar"
-        class="p-3 rounded-xl bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] text-slate-700 dark:text-slate-200 hover:border-accent transition-colors cursor-pointer shrink-0">
+        class="p-2.5 rounded-xl bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] text-slate-700 dark:text-slate-200 hover:border-accent transition-colors cursor-pointer shrink-0">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -295,124 +295,123 @@
     </div>
   </div>
 
-  <main class="max-w-2xl mx-auto px-4 pt-4 space-y-5">
+  <main class="max-w-2xl mx-auto px-3 pt-2.5 space-y-3">
 
     <!-- ==================== FLIK 1: REGISTRERA ==================== -->
-    <div id="view-register" class="space-y-5">
+    <div id="view-register" class="space-y-2.5">
 
       <!-- Formulärkort -->
-      <section id="form-section" class="bg-white dark:bg-[#232f42] rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-[#334155] shadow-sm">
-        <div class="flex items-center justify-between gap-2 mb-4">
+      <section id="form-section" class="bg-white dark:bg-[#232f42] rounded-2xl p-3 sm:p-4 border border-slate-200 dark:border-[#334155] shadow-sm">
+        <div class="flex items-center justify-between gap-2 mb-2.5">
           <div class="flex items-center gap-2 min-w-0">
-            <h2 id="form-title" class="text-base font-bold text-slate-900 dark:text-white truncate">Registrera resa</h2>
-            <span id="header-reg-nr" class="hidden text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-accent-soft text-accent border border-accent/20 tracking-wider uppercase shrink-0"></span>
+            <h2 id="form-title" class="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">Registrera resa</h2>
+            <span id="header-reg-nr" class="hidden text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-accent-soft text-accent border border-accent/20 tracking-wider uppercase shrink-0"></span>
           </div>
-          <div class="flex items-center gap-2 shrink-0">
+          <div class="flex items-center gap-1.5 shrink-0">
             <button type="button" onclick="toggleFavoritesModal(true)" title="Hantera favoriter"
-              class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] hover:border-accent px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer">
-              <svg class="w-3.5 h-3.5 text-accent" fill="currentColor" viewBox="0 0 24 24">
+              class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-[#293548] border border-slate-200 dark:border-[#3e4c63] hover:border-accent px-2 py-1 rounded-lg transition-colors cursor-pointer">
+              <svg class="w-3 h-3 text-accent" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
               </svg>
               <span>Favoriter</span>
             </button>
             <button type="button" id="cancel-edit-btn" onclick="cancelEdit()"
-              class="hidden text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-[#2f3d54] cursor-pointer">
+              class="hidden text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white px-2 py-1 rounded-lg bg-slate-100 dark:bg-[#2f3d54] cursor-pointer">
               Avbryt
             </button>
           </div>
         </div>
 
-        <form id="trip-form" novalidate class="space-y-4">
+        <form id="trip-form" novalidate class="space-y-2.5">
           <!-- Datumfält (visas endast vid redigering av befintlig resa) -->
           <div id="edit-date-wrapper" class="hidden">
-            <label for="edit-date" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Datum</label>
+            <label for="edit-date" class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200 mb-1">Datum</label>
             <input type="date" id="edit-date"
-              class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-semibold focus:outline-none focus:border-accent transition-colors">
+              class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-1.5 rounded-lg text-xs font-semibold focus:outline-none focus:border-accent transition-colors">
           </div>
 
           <!-- Typ av resa -->
           <div>
-            <span class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Typ av resa</span>
             <input type="hidden" id="type" value="Tjänst">
-            <div class="grid grid-cols-2 gap-2.5" role="group" aria-label="Typ av resa">
+            <div class="grid grid-cols-2 gap-2" role="group" aria-label="Typ av resa">
               <button type="button" id="btn-type-work" onclick="setTripType('Tjänst')" aria-pressed="true"
-                class="py-2.5 px-3 rounded-lg text-sm font-bold border-2 border-accent bg-accent text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                class="py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border-2 border-accent bg-accent text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5">
                 Tjänsteresa
               </button>
               <button type="button" id="btn-type-private" onclick="setTripType('Privat')" aria-pressed="false"
-                class="py-2.5 px-3 rounded-lg text-sm font-bold border-2 border-slate-300 dark:border-[#4b5b76] bg-slate-50 dark:bg-[#161f2e] text-slate-700 dark:text-slate-300 hover:border-slate-400 transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                class="py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border-2 border-slate-300 dark:border-[#4b5b76] bg-slate-50 dark:bg-[#161f2e] text-slate-700 dark:text-slate-300 hover:border-slate-400 transition-all cursor-pointer flex items-center justify-center gap-1.5">
                 Privatresa
               </button>
             </div>
           </div>
 
           <!-- Automatisk tidtagning för aktiv resa -->
-          <div id="active-trip-banner" class="bg-slate-100/90 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] rounded-lg px-3.5 py-2.5 flex items-center justify-between gap-2">
-            <div class="flex items-center gap-2.5 min-w-0">
-              <span id="trip-timer-dot" class="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0"></span>
+          <div id="active-trip-banner" class="bg-slate-100/90 dark:bg-[#161f2e] border border-slate-300 dark:border-[#4b5b76] rounded-lg px-2.5 py-1.5 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <span id="trip-timer-dot" class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
               <div class="min-w-0">
-                <p id="trip-timer-status" class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">Ingen pågående resa</p>
-                <p id="trip-timer-sub" class="text-[11px] text-slate-500 dark:text-slate-400 truncate">Tryck på Starta resa längst ner för att sätta starttid</p>
+                <p id="trip-timer-status" class="text-[11px] font-bold text-slate-800 dark:text-slate-100 truncate">Ingen pågående resa</p>
+                <p id="trip-timer-sub" class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Tryck på Starta resa längst ner för starttid</p>
               </div>
             </div>
             <button type="button" id="reset-trip-timer-btn" onclick="resetActiveTrip(true)" title="Nollställ pågående resa"
-              class="hidden px-2.5 py-1.5 rounded-lg bg-slate-200 dark:bg-[#293548] text-slate-700 dark:text-slate-200 hover:text-red-500 text-xs font-semibold transition-colors cursor-pointer shrink-0">
+              class="hidden px-2 py-1 rounded-md bg-slate-200 dark:bg-[#293548] text-slate-700 dark:text-slate-200 hover:text-red-500 text-[11px] font-semibold transition-colors cursor-pointer shrink-0">
               Avbryt
             </button>
           </div>
 
           <!-- Redigerbara tidsfält (visas endast vid redigering av befintlig resa) -->
-          <div id="edit-time-wrapper" class="hidden grid grid-cols-2 gap-3">
+          <div id="edit-time-wrapper" class="hidden grid grid-cols-2 gap-2">
             <div>
-              <label for="start-time" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Starttid</label>
+              <label for="start-time" class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200 mb-1">Starttid</label>
               <input type="time" id="start-time"
-                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-semibold focus:outline-none focus:border-accent transition-colors">
+                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-1.5 rounded-lg text-xs font-semibold focus:outline-none focus:border-accent transition-colors">
             </div>
 
             <div>
-              <label for="end-time" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">Sluttid</label>
+              <label for="end-time" class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200 mb-1">Sluttid</label>
               <input type="time" id="end-time"
-                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-semibold focus:outline-none focus:border-accent transition-colors">
+                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-1.5 rounded-lg text-xs font-semibold focus:outline-none focus:border-accent transition-colors">
             </div>
           </div>
 
           <!-- Fokuserad sektion för mätarställning -->
-          <div class="relative bg-slate-100/90 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] border-t-4 border-t-accent rounded-lg p-4 space-y-3.5 shadow-sm">
+          <div class="relative bg-slate-100/90 dark:bg-[#161f2e] border border-slate-300 dark:border-[#4b5b76] border-t-3 border-t-accent rounded-lg p-2.5 space-y-2 shadow-xs">
             <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <span class="w-2 h-2 bg-accent"></span>
-                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">Mätarställning (km)</span>
+              <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 bg-accent"></span>
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-100">Mätarställning (km)</span>
               </div>
-              <span id="live-distance" class="text-xs sm:text-sm font-extrabold px-2.5 py-1 rounded-md bg-accent text-white shadow-xs">
+              <span id="live-distance" class="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-accent text-white shadow-xs">
                 Sträcka: 0 km
               </span>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-2">
               <div>
-                <label for="odo-start" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">Start (km)</label>
+                <label for="odo-start" class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">Start (km)</label>
                 <input type="number" id="odo-start" inputmode="numeric" placeholder="45000"
                   oninput="updateLiveDistance()"
-                  class="w-full bg-white dark:bg-[#232f42] border-2 border-slate-400 dark:border-[#5b6e8c] focus:border-accent text-slate-900 dark:text-white px-3 py-3 rounded-lg text-xl sm:text-2xl font-extrabold tracking-tight text-center shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all">
+                  class="w-full bg-white dark:bg-[#232f42] border-2 border-slate-400 dark:border-[#5b6e8c] focus:border-accent text-slate-900 dark:text-white px-2 py-2 rounded-lg text-lg sm:text-xl font-extrabold tracking-tight text-center shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all">
               </div>
 
               <div>
-                <label for="odo-end" class="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">Slut (km)</label>
+                <label for="odo-end" class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">Slut (km)</label>
                 <input type="number" id="odo-end" inputmode="numeric" placeholder="45050"
                   oninput="updateLiveDistance()"
-                  class="w-full bg-white dark:bg-[#232f42] border-2 border-slate-400 dark:border-[#5b6e8c] focus:border-accent text-slate-900 dark:text-white px-3 py-3 rounded-lg text-xl sm:text-2xl font-extrabold tracking-tight text-center shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all">
+                  class="w-full bg-white dark:bg-[#232f42] border-2 border-slate-400 dark:border-[#5b6e8c] focus:border-accent text-slate-900 dark:text-white px-2 py-2 rounded-lg text-lg sm:text-xl font-extrabold tracking-tight text-center shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all">
               </div>
             </div>
           </div>
 
           <!-- Adressfält och favorit-orter (döljs automatiskt vid privatresa) -->
-          <div id="address-fields-wrapper" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div id="address-fields-wrapper" class="grid grid-cols-2 gap-2">
             <div>
-              <div class="flex justify-between items-center mb-1.5">
-                <label for="start-addr" class="block text-xs font-semibold text-slate-700 dark:text-slate-200">Startadress / Ort</label>
+              <div class="flex justify-between items-center mb-1">
+                <label for="start-addr" class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200">Startadress</label>
                 <button type="button" onclick="saveFavoriteFromInput('start-addr')" title="Spara som favorit" aria-label="Spara startadress som favorit"
-                  class="p-1 rounded-md text-accent hover:bg-accent-soft transition-colors cursor-pointer">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  class="p-0.5 rounded-md text-accent hover:bg-accent-soft transition-colors cursor-pointer">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
                     <polyline stroke-linecap="round" stroke-linejoin="round" points="17 21 17 13 7 13 7 21"></polyline>
                     <polyline stroke-linecap="round" stroke-linejoin="round" points="7 3 7 8 15 8"></polyline>
@@ -420,16 +419,16 @@
                 </button>
               </div>
               <input type="text" id="start-addr" placeholder="Från"
-                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-medium focus:outline-none focus:border-accent transition-colors">
-              <div id="fav-dropdown-start" class="mt-1.5"></div>
+                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:border-accent transition-colors">
+              <div id="fav-dropdown-start" class="mt-1"></div>
             </div>
 
             <div>
-              <div class="flex justify-between items-center mb-1.5">
-                <label for="end-addr" class="block text-xs font-semibold text-slate-700 dark:text-slate-200">Slutadress / Ort</label>
+              <div class="flex justify-between items-center mb-1">
+                <label for="end-addr" class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200">Slutadress</label>
                 <button type="button" onclick="saveFavoriteFromInput('end-addr')" title="Spara som favorit" aria-label="Spara slutadress som favorit"
-                  class="p-1 rounded-md text-accent hover:bg-accent-soft transition-colors cursor-pointer">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  class="p-0.5 rounded-md text-accent hover:bg-accent-soft transition-colors cursor-pointer">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
                     <polyline stroke-linecap="round" stroke-linejoin="round" points="17 21 17 13 7 13 7 21"></polyline>
                     <polyline stroke-linecap="round" stroke-linejoin="round" points="7 3 7 8 15 8"></polyline>
@@ -437,36 +436,36 @@
                 </button>
               </div>
               <input type="text" id="end-addr" placeholder="Till"
-                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-medium focus:outline-none focus:border-accent transition-colors">
-              <div id="fav-dropdown-end" class="mt-1.5"></div>
+                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:border-accent transition-colors">
+              <div id="fav-dropdown-end" class="mt-1"></div>
             </div>
 
             <!-- Via-adress (samma stil och synlighet som övriga adressfält) -->
-            <div id="via-field-container" class="sm:col-span-2">
-              <div class="flex justify-between items-center mb-1.5">
-                <label for="via-addr" class="block text-xs font-semibold text-slate-700 dark:text-slate-200">Via-adress / Ort (valfritt)</label>
+            <div id="via-field-container" class="col-span-2">
+              <div class="flex justify-between items-center mb-1">
+                <label for="via-addr" class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200">Via-adress / Ort (valfritt)</label>
                 <button type="button" onclick="saveFavoriteFromInput('via-addr')" title="Spara som favorit" aria-label="Spara via-adress som favorit"
-                  class="p-1 rounded-md text-accent hover:bg-accent-soft transition-colors cursor-pointer">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  class="p-0.5 rounded-md text-accent hover:bg-accent-soft transition-colors cursor-pointer">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
                     <polyline stroke-linecap="round" stroke-linejoin="round" points="17 21 17 13 7 13 7 21"></polyline>
                     <polyline stroke-linecap="round" stroke-linejoin="round" points="7 3 7 8 15 8"></polyline>
                   </svg>
                 </button>
               </div>
-              <input type="text" id="via-addr" placeholder="Via (t.ex. mellanstopp eller kund)"
-                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-medium focus:outline-none focus:border-accent transition-colors">
-              <div id="fav-dropdown-via" class="mt-1.5"></div>
+              <input type="text" id="via-addr" placeholder="Via (mellanstopp)"
+                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:border-accent transition-colors">
+              <div id="fav-dropdown-via" class="mt-1"></div>
             </div>
           </div>
 
           <!-- Ändamål (döljs vid privatresa) -->
           <div id="purpose-wrapper">
-            <div class="flex justify-between items-center mb-1.5">
-              <label for="purpose" class="block text-xs font-semibold text-slate-700 dark:text-slate-200">Ändamål / Anteckning (valfritt)</label>
+            <div class="flex justify-between items-center mb-1">
+              <label for="purpose" class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200">Ändamål / Anteckning (valfritt)</label>
               <button type="button" onclick="savePurposeFavorite()" title="Spara som favorit" aria-label="Spara ändamål som favorit"
-                class="p-1 rounded-md text-accent hover:bg-accent-soft transition-colors cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                class="p-0.5 rounded-md text-accent hover:bg-accent-soft transition-colors cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
                   <polyline stroke-linecap="round" stroke-linejoin="round" points="17 21 17 13 7 13 7 21"></polyline>
                   <polyline stroke-linecap="round" stroke-linejoin="round" points="7 3 7 8 15 8"></polyline>
@@ -474,20 +473,20 @@
               </button>
             </div>
             <input type="text" id="purpose" placeholder="T.ex. Kundmöte, leverans..."
-              class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-3 py-2.5 rounded-lg text-sm font-medium focus:outline-none focus:border-accent transition-colors">
-            <div id="fav-dropdown-purpose" class="mt-1.5"></div>
+              class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:border-accent transition-colors">
+            <div id="fav-dropdown-purpose" class="mt-1"></div>
           </div>
 
           <!-- Spara-knapp (Starta resa -> Avsluta & spara resa) -->
           <button type="submit" id="submit-btn"
-            class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 px-4 rounded-lg text-sm shadow-sm transition-colors cursor-pointer">
+            class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-2.5 px-4 rounded-lg text-sm shadow-sm transition-colors cursor-pointer">
             Starta resa
           </button>
         </form>
       </section>
 
       <!-- Meddelanderuta för formuläret -->
-      <div id="form-toast-box" class="hidden rounded-2xl p-3.5 text-sm font-medium border transition-all"></div>
+      <div id="form-toast-box" class="hidden rounded-xl p-2.5 text-xs font-medium border transition-all"></div>
     </div>
 
     <!-- ==================== FLIK 2: ÖVERSIKT & EXPORT ==================== -->
@@ -825,13 +824,13 @@
       if (tab === 'register') {
         regView.classList.remove('hidden');
         expView.classList.add('hidden');
-        regTab.className = 'py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm';
-        expTab.className = 'py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white';
+        regTab.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm';
+        expTab.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white';
       } else {
         regView.classList.add('hidden');
         expView.classList.remove('hidden');
-        expTab.className = 'py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm';
-        regTab.className = 'py-2.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white';
+        expTab.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer bg-accent text-white shadow-sm';
+        regTab.className = 'py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white';
 
         const exportMonthInput = document.getElementById('export-month');
         if (exportMonthInput && !exportMonthInput.value) {
@@ -968,14 +967,14 @@
       const privateBtn = document.getElementById('btn-type-private');
 
       if (workBtn && privateBtn) {
-        const inactiveClasses = 'py-2.5 px-3 rounded-lg text-sm font-bold border-2 border-slate-300 dark:border-[#4b5b76] bg-slate-50 dark:bg-[#161f2e] text-slate-700 dark:text-slate-300 hover:border-slate-400 transition-all cursor-pointer flex items-center justify-center gap-1.5';
+        const inactiveClasses = 'py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border-2 border-slate-300 dark:border-[#4b5b76] bg-slate-50 dark:bg-[#161f2e] text-slate-700 dark:text-slate-300 hover:border-slate-400 transition-all cursor-pointer flex items-center justify-center gap-1.5';
         if (isPrivate) {
           workBtn.className = inactiveClasses;
           workBtn.setAttribute('aria-pressed', 'false');
-          privateBtn.className = 'py-2.5 px-3 rounded-lg text-sm font-bold border-2 border-amber-500 bg-amber-500 text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5';
+          privateBtn.className = 'py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border-2 border-amber-500 bg-amber-500 text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5';
           privateBtn.setAttribute('aria-pressed', 'true');
         } else {
-          workBtn.className = 'py-2.5 px-3 rounded-lg text-sm font-bold border-2 border-accent bg-accent text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5';
+          workBtn.className = 'py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border-2 border-accent bg-accent text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5';
           workBtn.setAttribute('aria-pressed', 'true');
           privateBtn.className = inactiveClasses;
           privateBtn.setAttribute('aria-pressed', 'false');
@@ -1077,7 +1076,7 @@
       if (editingTripId) {
         statusEl.textContent = 'Redigerar sparad resa';
         subEl.textContent = 'Justera tider, datum eller mätarställning nedan';
-        dotEl.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0';
+        dotEl.className = 'w-2 h-2 rounded-full bg-amber-400 shrink-0';
         if (resetBtn) resetBtn.classList.add('hidden');
         submitBtn.textContent = 'Spara ändringar';
         return;
@@ -1087,7 +1086,7 @@
         const elapsed = Date.now() - activeTrip.startedAt;
         statusEl.textContent = `Resa pågår • Startad ${activeTrip.startTime}`;
         subEl.textContent = `Körtid: ${formatElapsedDuration(elapsed)}`;
-        dotEl.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0';
+        dotEl.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0';
         if (resetBtn) resetBtn.classList.remove('hidden');
         submitBtn.textContent = 'Avsluta & spara resa';
 
@@ -1106,8 +1105,8 @@
         }
       } else {
         statusEl.textContent = 'Ingen pågående resa';
-        subEl.textContent = 'Tryck på Starta resa längst ner för att sätta starttid';
-        dotEl.className = 'w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0';
+        subEl.textContent = 'Tryck på Starta resa längst ner för starttid';
+        dotEl.className = 'w-2 h-2 rounded-full bg-slate-400 shrink-0';
         if (resetBtn) resetBtn.classList.add('hidden');
         submitBtn.textContent = 'Starta resa';
       }
@@ -1132,7 +1131,7 @@
           <div class="flex flex-wrap gap-1">
             ${favorites.map(fav => `
               <button type="button" onclick="applyFavoriteToInput('${inputId}', '${escapeAttr(fav)}')"
-                class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100/70 dark:bg-[#1b2536]/70 border border-slate-200/80 dark:border-[#334155]/80 text-slate-500 dark:text-slate-400 hover:border-accent/60 hover:text-accent transition-colors cursor-pointer">
+                class="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-slate-100/70 dark:bg-[#1b2536]/70 border border-slate-200/80 dark:border-[#334155]/80 text-slate-500 dark:text-slate-400 hover:border-accent/60 hover:text-accent transition-colors cursor-pointer">
                 ${escapeHtml(fav)}
               </button>
             `).join('')}
@@ -1152,7 +1151,7 @@
         <div class="flex flex-wrap gap-1">
           ${purposeFavorites.map(fav => `
             <button type="button" onclick="applyFavoriteToInput('purpose', '${escapeAttr(fav)}')"
-              class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-slate-100/70 dark:bg-[#1b2536]/70 border border-slate-200/80 dark:border-[#334155]/80 text-slate-500 dark:text-slate-400 hover:border-accent/60 hover:text-accent transition-colors cursor-pointer">
+              class="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-slate-100/70 dark:bg-[#1b2536]/70 border border-slate-200/80 dark:border-[#334155]/80 text-slate-500 dark:text-slate-400 hover:border-accent/60 hover:text-accent transition-colors cursor-pointer">
               ${escapeHtml(fav)}
             </button>
           `).join('')}
@@ -1164,7 +1163,6 @@
       const input = document.getElementById(inputId);
       if (input) {
         input.value = value;
-        input.focus();
       }
     }
 
