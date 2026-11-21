@@ -1,4 +1,4 @@
-const CACHE_NAME = 'korjournal-pwa-v15';
+const CACHE_NAME = 'korjournal-pwa-v16';
 const ASSETS = [
   './',
   './index.html',
