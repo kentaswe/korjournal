@@ -72,7 +72,7 @@
     }
   </style>
 </head>
-<body class="text-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200 pb-16">
+<body class="text-slate-900 dark:text-slate-100 min-h-[100dvh] flex flex-col transition-colors duration-200 pb-16">
 
   <!-- Bottenmeny (Fliknavigering & Inställningar) -->
   <nav aria-label="Huvudmeny" class="fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-md border-t border-slate-200 dark:border-[#334155] shadow-lg">
@@ -295,13 +295,13 @@
     </div>
   </div>
 
-  <main class="max-w-2xl mx-auto px-3 pt-2.5 space-y-3">
+  <main class="w-full max-w-2xl mx-auto px-3 pt-2.5 flex-1 flex flex-col space-y-3">
 
     <!-- ==================== FLIK 1: REGISTRERA ==================== -->
-    <div id="view-register" class="space-y-2.5">
+    <div id="view-register" class="flex-1 flex flex-col justify-between gap-2.5">
 
       <!-- Formulärkort -->
-      <section id="form-section" class="bg-white dark:bg-[#232f42] rounded-2xl p-3 sm:p-4 border border-slate-200 dark:border-[#334155] shadow-sm">
+      <section id="form-section" class="flex-1 flex flex-col bg-white dark:bg-[#232f42] rounded-2xl p-3 sm:p-4 border border-slate-200 dark:border-[#334155] shadow-sm">
         <div class="flex items-center justify-between gap-2 mb-2.5">
           <div class="flex items-center gap-2 min-w-0">
             <h2 id="form-title" class="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">Registrera resa</h2>
@@ -322,12 +322,12 @@
           </div>
         </div>
 
-        <form id="trip-form" novalidate class="space-y-2.5">
+        <form id="trip-form" novalidate class="flex-1 flex flex-col justify-between gap-2.5">
           <!-- Datumfält (visas endast vid redigering av befintlig resa) -->
           <div id="edit-date-wrapper" class="hidden">
             <label for="edit-date" class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200 mb-1">Datum</label>
             <input type="date" id="edit-date"
-              class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-1.5 rounded-lg text-xs font-semibold focus:outline-none focus:border-accent transition-colors">
+              class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2 rounded-lg text-xs font-semibold focus:outline-none focus:border-accent transition-colors">
           </div>
 
           <!-- Typ av resa -->
@@ -335,27 +335,27 @@
             <input type="hidden" id="type" value="Tjänst">
             <div class="grid grid-cols-2 gap-2" role="group" aria-label="Typ av resa">
               <button type="button" id="btn-type-work" onclick="setTripType('Tjänst')" aria-pressed="true"
-                class="py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border-2 border-accent bg-accent text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                class="py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold border-2 border-accent bg-accent text-white shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1.5">
                 Tjänsteresa
               </button>
               <button type="button" id="btn-type-private" onclick="setTripType('Privat')" aria-pressed="false"
-                class="py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border-2 border-slate-300 dark:border-[#4b5b76] bg-slate-50 dark:bg-[#161f2e] text-slate-700 dark:text-slate-300 hover:border-slate-400 transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                class="py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold border-2 border-slate-300 dark:border-[#4b5b76] bg-slate-50 dark:bg-[#161f2e] text-slate-700 dark:text-slate-300 hover:border-slate-400 transition-all cursor-pointer flex items-center justify-center gap-1.5">
                 Privatresa
               </button>
             </div>
           </div>
 
           <!-- Automatisk tidtagning för aktiv resa -->
-          <div id="active-trip-banner" class="bg-slate-100/90 dark:bg-[#161f2e] border border-slate-300 dark:border-[#4b5b76] rounded-lg px-2.5 py-1.5 flex items-center justify-between gap-2">
+          <div id="active-trip-banner" class="bg-slate-100/90 dark:bg-[#161f2e] border border-slate-300 dark:border-[#4b5b76] rounded-lg px-3 py-2 flex items-center justify-between gap-2">
             <div class="flex items-center gap-2 min-w-0">
               <span id="trip-timer-dot" class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
               <div class="min-w-0">
-                <p id="trip-timer-status" class="text-[11px] font-bold text-slate-800 dark:text-slate-100 truncate">Ingen pågående resa</p>
-                <p id="trip-timer-sub" class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Tryck på Starta resa längst ner för starttid</p>
+                <p id="trip-timer-status" class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">Ingen pågående resa</p>
+                <p id="trip-timer-sub" class="text-[11px] text-slate-500 dark:text-slate-400 truncate">Tryck på Starta resa längst ner för starttid</p>
               </div>
             </div>
             <button type="button" id="reset-trip-timer-btn" onclick="resetActiveTrip(true)" title="Nollställ pågående resa"
-              class="hidden px-2 py-1 rounded-md bg-slate-200 dark:bg-[#293548] text-slate-700 dark:text-slate-200 hover:text-red-500 text-[11px] font-semibold transition-colors cursor-pointer shrink-0">
+              class="hidden px-2.5 py-1 rounded-md bg-slate-200 dark:bg-[#293548] text-slate-700 dark:text-slate-200 hover:text-red-500 text-[11px] font-semibold transition-colors cursor-pointer shrink-0">
               Avbryt
             </button>
           </div>
@@ -365,18 +365,18 @@
             <div>
               <label for="start-time" class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200 mb-1">Starttid</label>
               <input type="time" id="start-time"
-                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-1.5 rounded-lg text-xs font-semibold focus:outline-none focus:border-accent transition-colors">
+                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2 rounded-lg text-xs font-semibold focus:outline-none focus:border-accent transition-colors">
             </div>
 
             <div>
               <label for="end-time" class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200 mb-1">Sluttid</label>
               <input type="time" id="end-time"
-                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-1.5 rounded-lg text-xs font-semibold focus:outline-none focus:border-accent transition-colors">
+                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2 rounded-lg text-xs font-semibold focus:outline-none focus:border-accent transition-colors">
             </div>
           </div>
 
           <!-- Fokuserad sektion för mätarställning -->
-          <div class="relative bg-slate-100/90 dark:bg-[#161f2e] border border-slate-300 dark:border-[#4b5b76] border-t-3 border-t-accent rounded-lg p-2.5 space-y-2 shadow-xs">
+          <div class="relative bg-slate-100/90 dark:bg-[#161f2e] border border-slate-300 dark:border-[#4b5b76] border-t-3 border-t-accent rounded-lg p-3 space-y-2.5 shadow-xs">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 bg-accent"></span>
@@ -387,25 +387,25 @@
               </span>
             </div>
 
-            <div class="grid grid-cols-2 gap-2">
+            <div class="grid grid-cols-2 gap-2.5">
               <div>
                 <label for="odo-start" class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">Start (km)</label>
                 <input type="number" id="odo-start" inputmode="numeric" placeholder="45000"
                   oninput="updateLiveDistance()"
-                  class="w-full bg-white dark:bg-[#232f42] border-2 border-slate-400 dark:border-[#5b6e8c] focus:border-accent text-slate-900 dark:text-white px-2 py-2 rounded-lg text-lg sm:text-xl font-extrabold tracking-tight text-center shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all">
+                  class="w-full bg-white dark:bg-[#232f42] border-2 border-slate-400 dark:border-[#5b6e8c] focus:border-accent text-slate-900 dark:text-white px-2 py-2.5 rounded-lg text-lg sm:text-xl font-extrabold tracking-tight text-center shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all">
               </div>
 
               <div>
                 <label for="odo-end" class="block text-[11px] font-bold text-slate-700 dark:text-slate-200 mb-1">Slut (km)</label>
                 <input type="number" id="odo-end" inputmode="numeric" placeholder="45050"
                   oninput="updateLiveDistance()"
-                  class="w-full bg-white dark:bg-[#232f42] border-2 border-slate-400 dark:border-[#5b6e8c] focus:border-accent text-slate-900 dark:text-white px-2 py-2 rounded-lg text-lg sm:text-xl font-extrabold tracking-tight text-center shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all">
+                  class="w-full bg-white dark:bg-[#232f42] border-2 border-slate-400 dark:border-[#5b6e8c] focus:border-accent text-slate-900 dark:text-white px-2 py-2.5 rounded-lg text-lg sm:text-xl font-extrabold tracking-tight text-center shadow-xs focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all">
               </div>
             </div>
           </div>
 
           <!-- Adressfält och favorit-orter (döljs automatiskt vid privatresa) -->
-          <div id="address-fields-wrapper" class="grid grid-cols-2 gap-2">
+          <div id="address-fields-wrapper" class="grid grid-cols-2 gap-2.5">
             <div>
               <div class="flex justify-between items-center mb-1">
                 <label for="start-addr" class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200">Startadress</label>
@@ -419,7 +419,7 @@
                 </button>
               </div>
               <input type="text" id="start-addr" placeholder="Från"
-                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:border-accent transition-colors">
+                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2.5 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:border-accent transition-colors">
               <div id="fav-dropdown-start" class="mt-1"></div>
             </div>
 
@@ -436,7 +436,7 @@
                 </button>
               </div>
               <input type="text" id="end-addr" placeholder="Till"
-                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:border-accent transition-colors">
+                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2.5 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:border-accent transition-colors">
               <div id="fav-dropdown-end" class="mt-1"></div>
             </div>
 
@@ -454,7 +454,7 @@
                 </button>
               </div>
               <input type="text" id="via-addr" placeholder="Via (mellanstopp)"
-                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:border-accent transition-colors">
+                class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2.5 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:border-accent transition-colors">
               <div id="fav-dropdown-via" class="mt-1"></div>
             </div>
           </div>
@@ -473,13 +473,13 @@
               </button>
             </div>
             <input type="text" id="purpose" placeholder="T.ex. Kundmöte, leverans..."
-              class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:border-accent transition-colors">
+              class="w-full bg-slate-50 dark:bg-[#161f2e] border-2 border-slate-300 dark:border-[#4b5b76] text-slate-900 dark:text-slate-50 px-2.5 py-2.5 rounded-lg text-xs sm:text-sm font-medium focus:outline-none focus:border-accent transition-colors">
             <div id="fav-dropdown-purpose" class="mt-1"></div>
           </div>
 
           <!-- Spara-knapp (Starta resa -> Avsluta & spara resa) -->
           <button type="submit" id="submit-btn"
-            class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-2.5 px-4 rounded-lg text-sm shadow-sm transition-colors cursor-pointer">
+            class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-3 px-4 rounded-xl text-sm shadow-sm transition-colors cursor-pointer">
             Starta resa
           </button>
         </form>
@@ -633,37 +633,7 @@
             ? parsed.map((t, i) => ({ ...t, id: String(t.id || `trip-${Date.now()}-${i}`) }))
             : [];
         } else {
-          // Exempelresor första gången appen öppnas
-          const today = new Date().toISOString().split('T')[0];
-          trips = [
-            {
-              id: 'trip-demo-1',
-              date: today,
-              startTime: '08:15',
-              endTime: '08:55',
-              type: 'Tjänst',
-              startAddr: 'Kontoret, Stockholm',
-              viaAddr: '',
-              endAddr: 'Kund AB, Solna',
-              odoStart: 45120,
-              odoEnd: 45148,
-              purpose: 'Kundmöte & projektering'
-            },
-            {
-              id: 'trip-demo-2',
-              date: today,
-              startTime: '17:10',
-              endTime: '17:35',
-              type: 'Privat',
-              startAddr: '',
-              viaAddr: '',
-              endAddr: '',
-              odoStart: 45148,
-              odoEnd: 45164,
-              purpose: 'Privatresa'
-            }
-          ];
-          saveTrips();
+          trips = [];
         }
       } catch (e) {
         trips = [];
@@ -1645,8 +1615,21 @@
       });
 
       const regNr = localStorage.getItem(REG_NR_KEY) || '';
+      let workKm = 0;
+      let privateKm = 0;
+      let workCount = 0;
+      let privateCount = 0;
+
       const rows = filtered.map(t => {
         const dist = Math.round(((Number(t.odoEnd) || 0) - (Number(t.odoStart) || 0)) * 10) / 10;
+        const distMil = Math.round((dist / 10) * 100) / 100;
+        if (t.type === 'Privat') {
+          privateKm += dist;
+          privateCount++;
+        } else {
+          workKm += dist;
+          workCount++;
+        }
         return {
           'Datum': t.date || '',
           'Starttid': t.startTime || '',
@@ -1658,12 +1641,57 @@
           'Startmätare (km)': Number(t.odoStart) || 0,
           'Slutmätare (km)': Number(t.odoEnd) || 0,
           'Sträcka (km)': dist,
+          'Sträcka (mil)': distMil,
           'Ändamål': t.purpose || '',
           'Reg-nr': regNr
         };
       });
 
+      const totalKm = Math.round((workKm + privateKm) * 10) / 10;
+      const workKmRounded = Math.round(workKm * 10) / 10;
+      const privateKmRounded = Math.round(privateKm * 10) / 10;
+
+      // Sammanställningsrader längst ner i Excel-filen
+      rows.push({});
+      rows.push({
+        'Datum': 'SAMMANSTÄLLNING',
+        'Typ': 'Kategori',
+        'Startadress': 'Antal resor',
+        'Sträcka (km)': 'Totalt (km)',
+        'Sträcka (mil)': 'Totalt (mil)',
+        'Reg-nr': regNr
+      });
+      rows.push({
+        'Datum': 'Sammanställning',
+        'Typ': 'Tjänsteresor',
+        'Startadress': `${workCount} st`,
+        'Sträcka (km)': workKmRounded,
+        'Sträcka (mil)': Math.round((workKmRounded / 10) * 100) / 100,
+        'Reg-nr': regNr
+      });
+      rows.push({
+        'Datum': 'Sammanställning',
+        'Typ': 'Privatresor',
+        'Startadress': `${privateCount} st`,
+        'Sträcka (km)': privateKmRounded,
+        'Sträcka (mil)': Math.round((privateKmRounded / 10) * 100) / 100,
+        'Reg-nr': regNr
+      });
+      rows.push({
+        'Datum': 'Sammanställning',
+        'Typ': 'Totalt',
+        'Startadress': `${filtered.length} st`,
+        'Sträcka (km)': totalKm,
+        'Sträcka (mil)': Math.round((totalKm / 10) * 100) / 100,
+        'Reg-nr': regNr
+      });
+
       const ws = XLSX.utils.json_to_sheet(rows);
+      ws['!cols'] = [
+        { wch: 16 }, { wch: 10 }, { wch: 10 }, { wch: 14 },
+        { wch: 22 }, { wch: 18 }, { wch: 22 }, { wch: 16 },
+        { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 24 }, { wch: 12 }
+      ];
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Körjournal');
       const fileName = `Korjournal_${regNr ? regNr.replace(/\s+/g, '') + '_' : ''}${fileSuffix}.xlsx`;
@@ -1709,7 +1737,7 @@
             };
 
             const rawDate = String(getCol(['datum', 'date']) || '').trim();
-            if (!rawDate) return;
+            if (!rawDate || rawDate.toLowerCase().startsWith('sammanställning')) return;
 
             const startTime = String(getCol(['starttid', 'start time']) || '').trim();
             const endTime = String(getCol(['sluttid', 'end time']) || '').trim();
