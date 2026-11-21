@@ -214,6 +214,8 @@
         class="w-full bg-accent hover:bg-accent-hover text-white font-semibold py-2.5 px-4 rounded-xl text-xs shadow-sm transition-colors cursor-pointer">
         Klar
       </button>
+
+      <p class="text-center text-[10px] text-slate-400 dark:text-slate-500">Körjournal <span class="app-version-label">v1.0</span></p>
     </div>
   </div>
 
@@ -298,7 +300,7 @@
   <main class="w-full max-w-2xl mx-auto px-3 pt-2.5 flex-1 flex flex-col space-y-3">
 
     <!-- ==================== FLIK 1: REGISTRERA ==================== -->
-    <div id="view-register" class="flex-1 flex flex-col gap-2.5">
+    <div id="view-register" class="flex-1 flex flex-col gap-2">
 
       <!-- Formulärkort -->
       <section id="form-section" class="flex-1 flex flex-col bg-white dark:bg-[#232f42] rounded-2xl p-3 sm:p-4 border border-slate-200 dark:border-[#334155] shadow-sm">
@@ -485,6 +487,11 @@
         </form>
       </section>
 
+      <!-- Diskret versionsnummer längst ner -->
+      <p class="text-center text-[10px] text-slate-400/80 dark:text-slate-500/80 select-none pb-0.5">
+        <span class="app-version-label">v1.0</span>
+      </p>
+
       <!-- Meddelanderuta för formuläret -->
       <div id="form-toast-box" class="hidden rounded-xl p-2.5 text-xs font-medium border transition-all"></div>
     </div>
@@ -603,6 +610,9 @@
   </main>
 
   <script>
+    // Ändra versionsnumret här vid nya uppdateringar:
+    const APP_VERSION = 'v1.0';
+
     // Nycklar för localStorage
     const STORAGE_KEY = 'korjournal_trips_v1';
     const FAVORITES_KEY = 'korjournal_favorites_v1';
@@ -734,6 +744,10 @@
     }
 
     function initThemeAndColors() {
+      document.querySelectorAll('.app-version-label').forEach(el => {
+        el.textContent = APP_VERSION;
+      });
+
       const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
       if (savedTheme === 'light') {
         document.documentElement.classList.remove('dark');
